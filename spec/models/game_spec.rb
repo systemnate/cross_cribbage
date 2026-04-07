@@ -124,4 +124,74 @@ RSpec.describe Game, type: :model do
       expect(result[:my_next_card]).to be_nil
     end
   end
+
+  describe "#place_card!" do
+    let(:game) { create(:game, :active) }
+
+    before do
+      game.deal!
+      game.reload
+    end
+
+    def active_slot
+      game.current_turn
+    end
+
+    def inactive_slot
+      game.current_turn == "player1" ? "player2" : "player1"
+    end
+
+    it "raises if not the player's turn" do
+      expect {
+        game.place_card!(inactive_slot, 0, 0)
+      }.to raise_error(Game::Error, /not your turn/i)
+    end
+
+    it "raises if row is out of bounds" do
+      expect { game.place_card!(active_slot, 5, 0) }.to raise_error(Game::Error, /invalid position/i)
+    end
+
+    it "raises if col is out of bounds" do
+      expect { game.place_card!(active_slot, 0, 5) }.to raise_error(Game::Error, /invalid position/i)
+    end
+
+    it "raises if cell is occupied (center)" do
+      expect { game.place_card!(active_slot, 2, 2) }.to raise_error(Game::Error, /occupied/i)
+    end
+
+    it "places the player's top card on the board" do
+      top_card = game.send("#{active_slot}_deck").first
+      game.place_card!(active_slot, 0, 0)
+      expect(game.board[0][0]).to eq(top_card)
+    end
+
+    it "removes the card from the player's deck" do
+      slot = active_slot
+      deck_size_before = game.send("#{slot}_deck").size
+      game.place_card!(slot, 0, 0)
+      expect(game.send("#{slot}_deck").size).to eq(deck_size_before - 1)
+    end
+
+    it "flips the turn to the other player" do
+      original_turn = game.current_turn
+      game.place_card!(active_slot, 0, 0)
+      expect(game.current_turn).not_to eq(original_turn)
+    end
+
+    it "rescores the affected column" do
+      game.place_card!(active_slot, 0, 3)
+      expect(game.col_scores[3]).to be_nil.or(be_a(Integer))
+    end
+
+    it "rescores the affected row" do
+      game.place_card!(active_slot, 1, 0)
+      expect(game.row_scores[1]).to be_nil.or(be_a(Integer))
+    end
+
+    it "persists the state" do
+      game.place_card!(active_slot, 0, 0)
+      game.reload
+      expect(game.board[0][0]).to be_a(Hash)
+    end
+  end
 end

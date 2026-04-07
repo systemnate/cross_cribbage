@@ -53,6 +53,27 @@ class Game < ApplicationRecord
     }
   end
 
+  # ── Turn actions ──────────────────────────────────────────────────────
+
+  def place_card!(slot, row, col)
+    assert_active_turn!(slot)
+    raise Error, "Invalid position" unless row.between?(0, 4) && col.between?(0, 4)
+
+    current_board = board.map(&:dup)
+    raise Error, "Cell is occupied" if current_board[row][col]
+
+    card = pop_top_card!(slot)
+    current_board[row][col] = card
+    self.board = current_board
+
+    rescore_row!(row)
+    rescore_col!(col)
+
+    board_full? ? enter_scoring_phase! : flip_turn!
+
+    save!
+  end
+
   private
 
   # ── Round setup ───────────────────────────────────────────────────────
@@ -131,5 +152,9 @@ class Game < ApplicationRecord
   def assert_active_turn!(slot)
     raise Error, "Game is not active" unless status == "active"
     raise Error, "Not your turn"      unless current_turn == slot
+  end
+
+  def enter_scoring_phase!
+    self.status = "scoring"
   end
 end
