@@ -1,0 +1,9 @@
+# config/cable.yml
+development:
+  adapter: async
+
+test:
+  adapter: test
+
+production:
+  adapter: solid_cable

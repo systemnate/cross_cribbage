@@ -1,0 +1,17 @@
+# config/database.yml
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: cross_cribbage_development
+
+test:
+  <<: *default
+  database: cross_cribbage_test
+
+production:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
