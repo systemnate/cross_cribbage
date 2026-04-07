@@ -19,6 +19,7 @@ module Api
     def join
       return render_error("Game is not joinable")         unless @game.status == "waiting"
       return render_error("Game already has two players") if @game.player2_token.present?
+      return render_error("Cannot join your own game", status: :forbidden) if @current_token == @game.player1_token
 
       token = Game.generate_token
       @game.update!(player2_token: token)
@@ -63,10 +64,8 @@ module Api
 
     def game_action(&block)
       block.call
-      if @game.status == "scoring" && @game.winner_slot.nil?
-        AdvanceRoundJob.set(wait: 3.seconds).perform_later(@game.id)
-      end
       GameChannel.broadcast_game_state(@game)
+      AdvanceRoundJob.set(wait: 3.seconds).perform_later(@game.id) if @game.status == "scoring"
       render json: @game.serialize_for(@current_token)
     rescue Game::Error => e
       render_error(e.message)
