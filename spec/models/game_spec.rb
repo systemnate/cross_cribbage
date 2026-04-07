@@ -208,14 +208,16 @@ RSpec.describe Game, type: :model do
     end
 
     it "adds the top card to the crib" do
-      top_card = game.send("#{active_slot}_deck").first
-      game.discard_to_crib!(active_slot)
+      slot = active_slot
+      top_card = game.send("#{slot}_deck").first
+      game.discard_to_crib!(slot)
       expect(game.crib).to include(top_card)
     end
 
     it "increments the player's crib discard count" do
-      game.discard_to_crib!(active_slot)
-      expect(game.send("#{active_slot}_crib_discards")).to eq(1)
+      slot = active_slot
+      game.discard_to_crib!(slot)
+      expect(game.send("#{slot}_crib_discards")).to eq(1)
     end
 
     it "raises after 2 discards" do
@@ -225,8 +227,9 @@ RSpec.describe Game, type: :model do
     end
 
     it "flips the turn" do
+      slot = active_slot
       original = game.current_turn
-      game.discard_to_crib!(active_slot)
+      game.discard_to_crib!(slot)
       expect(game.current_turn).not_to eq(original)
     end
   end
