@@ -18,7 +18,7 @@ export function GamePage() {
 
   const { data: game, isLoading, error } = useGame(gameId);
   useGameChannel(gameId);
-  const action = useGameAction(gameId ?? "");
+  const action = useGameAction(gameId);
 
   if (isLoading) {
     return <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Loading…</div>;
@@ -57,20 +57,28 @@ export function GamePage() {
     );
   }
 
-  const mySlot    = game.my_slot!;
+  if (!game.my_slot) {
+    return <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Joining game…</div>;
+  }
+
+  const mySlot    = game.my_slot;
+  const oppSlot   = mySlot === "player1" ? "player2" : "player1";
   const isMyTurn  = game.current_turn === mySlot;
-  const myPeg     = mySlot === "player1" ? game.player1_peg : game.player2_peg;
-  const oppPeg    = mySlot === "player1" ? game.player2_peg : game.player1_peg;
-  const myCribDiscards    = game.crib_size[mySlot];
-  const oppCribDiscards   = mySlot === "player1" ? game.crib_size.player2 : game.crib_size.player1;
-  const myDeckSize        = game.deck_size[mySlot];
+  const myPeg     = game[`${mySlot}_peg`];
+  const oppPeg    = game[`${oppSlot}_peg`];
+  const myCribDiscards  = game.crib_size[mySlot];
+  const oppCribDiscards = game.crib_size[oppSlot];
+  const myDeckSize      = game.deck_size[mySlot];
+  const isInteractable  = isMyTurn && game.status === "active";
+
+  const { id: gid } = game;
 
   function handleCellClick(row: number, col: number) {
-    action.mutate(() => api.placeCard(game.id, row, col));
+    action.mutate(() => api.placeCard(gid, row, col));
   }
 
   function handleDiscard() {
-    action.mutate(() => api.discardToCrib(game.id));
+    action.mutate(() => api.discardToCrib(gid));
   }
 
   return (
@@ -100,7 +108,7 @@ export function GamePage() {
           starter={game.starter_card}
           rowScores={game.row_scores}
           colScores={game.col_scores}
-          isMyTurn={isMyTurn && game.status === "active"}
+          isMyTurn={isInteractable}
           onCellClick={handleCellClick}
         />
 
@@ -108,7 +116,7 @@ export function GamePage() {
           <CardPreview
             card={game.my_next_card}
             deckSize={myDeckSize}
-            isMyTurn={isMyTurn && game.status === "active"}
+            isMyTurn={isInteractable}
             onDiscard={handleDiscard}
             canDiscard={myCribDiscards < 2}
             isLoading={action.isPending}
