@@ -76,13 +76,14 @@ class Game < ApplicationRecord
 
   def discard_to_crib!(slot)
     assert_active_turn!(slot)
-    raise Error, "Already discarded 2 cards to the crib" if self["#{slot}_crib_discards"] >= 2
+    raise Error, "Already discarded 2 cards to the crib" if send("#{slot}_crib_discards") >= 2
 
     card = pop_top_card!(slot)
     self.crib = crib + [card]
-    self["#{slot}_crib_discards"] += 1
+    self.send("#{slot}_crib_discards=", send("#{slot}_crib_discards") + 1)
 
-    board_full? ? enter_scoring_phase! : flip_turn!
+    # Discards never fill the board (only place_card! does), so always flip turn.
+    flip_turn!
 
     save!
   end
@@ -172,6 +173,8 @@ class Game < ApplicationRecord
 
     self.crib_score = CribbageHand.new(crib, starter: starter_card, is_crib: true).score
 
+    # Game rule (fixed for all rounds): player1 always scores columns; player2 always scores rows.
+    # Crib score goes to whichever player owns the crib this round.
     p1_total = col_scores.compact.sum + (crib_owner == "player1" ? crib_score.to_i : 0)
     p2_total = row_scores.compact.sum + (crib_owner == "player2" ? crib_score.to_i : 0)
 
