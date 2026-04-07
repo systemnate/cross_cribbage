@@ -89,9 +89,10 @@ class Game < ApplicationRecord
   end
 
   def advance_round!
-    self.round      += 1
-    self.crib_owner  = opposite(crib_owner)
-    self.current_turn = opposite(crib_owner)
+    self.round         += 1
+    new_crib_owner      = opposite(crib_owner)
+    self.crib_owner     = new_crib_owner
+    self.current_turn   = opposite(new_crib_owner)   # non-crib player goes first
     setup_round!
     self.status = "active"
     save!
