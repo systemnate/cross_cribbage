@@ -74,6 +74,19 @@ class Game < ApplicationRecord
     save!
   end
 
+  def discard_to_crib!(slot)
+    assert_active_turn!(slot)
+    raise Error, "Already discarded 2 cards to the crib" if self["#{slot}_crib_discards"] >= 2
+
+    card = pop_top_card!(slot)
+    self.crib = crib + [card]
+    self["#{slot}_crib_discards"] += 1
+
+    board_full? ? enter_scoring_phase! : flip_turn!
+
+    save!
+  end
+
   private
 
   # ── Round setup ───────────────────────────────────────────────────────
@@ -155,6 +168,28 @@ class Game < ApplicationRecord
   end
 
   def enter_scoring_phase!
-    self.status = "scoring"
+    5.times { |i| rescore_row!(i); rescore_col!(i) }
+
+    self.crib_score = CribbageHand.new(crib, starter: starter_card, is_crib: true).score
+
+    p1_total = col_scores.compact.sum + (crib_owner == "player1" ? crib_score.to_i : 0)
+    p2_total = row_scores.compact.sum + (crib_owner == "player2" ? crib_score.to_i : 0)
+
+    diff = (p1_total - p2_total).abs
+    if p1_total > p2_total
+      self.player1_peg += diff
+    elsif p2_total > p1_total
+      self.player2_peg += diff
+    end
+
+    self.status = if player1_peg >= 31
+      self.winner_slot = "player1"
+      "finished"
+    elsif player2_peg >= 31
+      self.winner_slot = "player2"
+      "finished"
+    else
+      "scoring"
+    end
   end
 end

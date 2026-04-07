@@ -194,4 +194,94 @@ RSpec.describe Game, type: :model do
       expect(game.board[0][0]).to be_a(Hash)
     end
   end
+
+  describe "#discard_to_crib!" do
+    let(:game) { create(:game, :active) }
+
+    before { game.deal!; game.reload }
+
+    def active_slot = game.current_turn
+
+    it "raises if not the player's turn" do
+      other = game.current_turn == "player1" ? "player2" : "player1"
+      expect { game.discard_to_crib!(other) }.to raise_error(Game::Error, /not your turn/i)
+    end
+
+    it "adds the top card to the crib" do
+      top_card = game.send("#{active_slot}_deck").first
+      game.discard_to_crib!(active_slot)
+      expect(game.crib).to include(top_card)
+    end
+
+    it "increments the player's crib discard count" do
+      game.discard_to_crib!(active_slot)
+      expect(game.send("#{active_slot}_crib_discards")).to eq(1)
+    end
+
+    it "raises after 2 discards" do
+      slot = active_slot
+      game.update!("#{slot}_crib_discards" => 2)
+      expect { game.discard_to_crib!(slot) }.to raise_error(Game::Error, /already discarded/i)
+    end
+
+    it "flips the turn" do
+      original = game.current_turn
+      game.discard_to_crib!(active_slot)
+      expect(game.current_turn).not_to eq(original)
+    end
+  end
+
+  describe "scoring phase" do
+    it "enters scoring when board is full" do
+      game = create(:game, :active)
+      game.deal!
+      game.reload
+
+      fill_board!(game)
+
+      expect(game.status).to eq("scoring")
+    end
+
+    it "advances the winning player's peg by the score difference" do
+      game = create(:game, :active)
+      game.deal!
+      game.reload
+      fill_board!(game)
+
+      peg_total = game.player1_peg + game.player2_peg
+      expect(peg_total).to be > 0
+    end
+
+    it "sets status to finished when peg reaches 31" do
+      game = create(:game, :active)
+      game.update!(player1_peg: 30)
+      game.deal!
+      game.reload
+      fill_board!(game)
+
+      if game.player1_peg >= 31 || game.player2_peg >= 31
+        expect(game.status).to eq("finished")
+        expect(game.winner_slot).to be_in(%w[player1 player2])
+      else
+        expect(game.status).to eq("scoring")
+      end
+    end
+  end
+end
+
+def fill_board!(game)
+  24.times do
+    slot = game.current_turn
+    discard_count = game.send("#{slot}_crib_discards")
+    if discard_count < 2 && game.send("#{slot}_deck").size <= (2 - discard_count)
+      game.discard_to_crib!(slot)
+    else
+      empty = game.board.each_with_index.flat_map { |row, r|
+        row.each_with_index.filter_map { |cell, c| [r, c] unless cell }
+      }.first
+      game.place_card!(slot, *empty)
+    end
+    game.reload
+    break if game.status != "active"
+  end
 end
