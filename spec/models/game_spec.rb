@@ -234,6 +234,61 @@ RSpec.describe Game, type: :model do
     end
   end
 
+  describe "#advance_round!" do
+    let(:game) do
+      g = create(:game, :active)
+      g.deal!
+      g.reload
+      fill_board!(g)
+      g.reload
+      g
+    end
+
+    before do
+      # Ensure game is in scoring state (not finished)
+      skip "game already finished" if game.status == "finished"
+      game.advance_round!
+      game.reload
+    end
+
+    it "increments the round" do
+      expect(game.round).to eq(2)
+    end
+
+    it "flips the crib owner" do
+      expect(game.crib_owner).to be_in(%w[player1 player2])
+    end
+
+    it "sets current_turn to the non-crib player" do
+      expected = game.crib_owner == "player1" ? "player2" : "player1"
+      expect(game.current_turn).to eq(expected)
+    end
+
+    it "resets the board to 5x5 with only starter filled" do
+      filled = game.board.flatten.compact.size
+      expect(filled).to eq(1)
+      expect(game.board[2][2]).to be_a(Hash)
+    end
+
+    it "deals 14 new cards to each player" do
+      expect(game.player1_deck.size).to eq(14)
+      expect(game.player2_deck.size).to eq(14)
+    end
+
+    it "resets crib to empty" do
+      expect(game.crib).to eq([])
+    end
+
+    it "resets scores to nil" do
+      expect(game.row_scores).to all(be_nil.or(be_a(Integer))) # may have starter score
+      expect(game.crib_score).to be_nil
+    end
+
+    it "sets status back to active" do
+      expect(game.status).to eq("active")
+    end
+  end
+
   describe "scoring phase" do
     it "enters scoring when board is full" do
       game = create(:game, :active)

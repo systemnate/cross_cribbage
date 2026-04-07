@@ -88,6 +88,15 @@ class Game < ApplicationRecord
     save!
   end
 
+  def advance_round!
+    self.round      += 1
+    self.crib_owner  = opposite(crib_owner)
+    self.current_turn = opposite(crib_owner)
+    setup_round!
+    self.status = "active"
+    save!
+  end
+
   private
 
   # ── Round setup ───────────────────────────────────────────────────────
