@@ -82,9 +82,6 @@ RSpec.describe Game, type: :model do
     it "grants 2 nibs points to crib_owner when starter is a Jack" do
       # Force a Jack starter by mocking build_deck
       jack_card = { "rank" => "J", "suit" => "♠", "id" => SecureRandom.uuid }
-      allow(game).to receive(:build_deck).and_return([jack_card] + Array.new(28) { |i|
-        { "rank" => i.to_s, "suit" => "♥", "id" => SecureRandom.uuid }
-      })
       game2 = create(:game, player2_token: SecureRandom.hex(16))
       allow(game2).to receive(:build_deck).and_return([jack_card] + Array.new(28) { |i|
         { "rank" => (i + 1).to_s, "suit" => "♥", "id" => SecureRandom.uuid }
@@ -92,6 +89,39 @@ RSpec.describe Game, type: :model do
       game2.deal!
       peg = game2.crib_owner == "player1" ? game2.player1_peg : game2.player2_peg
       expect(peg).to eq(2)
+    end
+  end
+
+  describe "#serialize_for" do
+    let(:game) { create(:game, player2_token: SecureRandom.hex(16)) }
+
+    before { game.deal! }
+
+    it "includes all required fields for player1" do
+      result = game.serialize_for(game.player1_token)
+      expect(result).to include(
+        :id, :status, :current_turn, :round, :crib_owner,
+        :board, :starter_card, :row_scores, :col_scores,
+        :crib_score, :crib_size, :deck_size,
+        :player1_peg, :player2_peg, :winner_slot,
+        :my_slot, :my_next_card
+      )
+    end
+
+    it "returns my_slot = player1 for player1 token" do
+      result = game.serialize_for(game.player1_token)
+      expect(result[:my_slot]).to eq("player1")
+    end
+
+    it "returns my_next_card as the first card in player1 deck" do
+      result = game.serialize_for(game.player1_token)
+      expect(result[:my_next_card]).to eq(game.player1_deck.first)
+    end
+
+    it "returns nil my_slot for unknown token" do
+      result = game.serialize_for("unknown")
+      expect(result[:my_slot]).to be_nil
+      expect(result[:my_next_card]).to be_nil
     end
   end
 end

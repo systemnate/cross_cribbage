@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 class Game < ApplicationRecord
+  class Error < StandardError; end
+
   RANKS = %w[A 2 3 4 5 6 7 8 9 10 J Q K].freeze
   SUITS = %w[♠ ♥ ♦ ♣].freeze
 
@@ -75,7 +77,7 @@ class Game < ApplicationRecord
 
     # Nibs: starter is a Jack → crib owner scores 2 pts
     if starter["rank"] == "J"
-      self["#{crib_owner}_peg"] += 2
+      self.send("#{crib_owner}_peg=", send("#{crib_owner}_peg") + 2)
     end
 
     rescore_row!(2)
@@ -117,7 +119,7 @@ class Game < ApplicationRecord
   def pop_top_card!(slot)
     deck = send("#{slot}_deck").dup
     card = deck.shift
-    raise "No cards left in deck" unless card
+    raise Error, "No cards left in deck" unless card
     send("#{slot}_deck=", deck)
     card
   end
@@ -127,7 +129,7 @@ class Game < ApplicationRecord
   end
 
   def assert_active_turn!(slot)
-    raise "Game is not active" unless status == "active"
-    raise "Not your turn"      unless current_turn == slot
+    raise Error, "Game is not active" unless status == "active"
+    raise Error, "Not your turn"      unless current_turn == slot
   end
 end
