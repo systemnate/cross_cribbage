@@ -22,14 +22,9 @@ class CribbageHand
   end
 
   def breakdown
-    {
-      fifteens: fifteens,
-      pairs:    pairs,
-      runs:     runs,
-      flush:    flush,
-      nobs:     nobs,
-      total:    fifteens + pairs + runs + flush + nobs
-    }
+    result = { fifteens: fifteens, pairs: pairs, runs: runs, flush: flush, nobs: nobs }
+    result[:total] = result.values.sum
+    result
   end
 
   private
@@ -94,7 +89,7 @@ class CribbageHand
   end
 
   def consecutive?(values)
-    values.sort.each_cons(2).all? { |a, b| b - a == 1 }
+    values.each_cons(2).all? { |a, b| b - a == 1 }
   end
 
   def fifteen_value(card)
