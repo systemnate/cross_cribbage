@@ -16,42 +16,39 @@ export function useGameChannel(gameId: string | null): void {
       { channel: "GameChannel", game_id: gameId, token: getToken() },
       {
         received(data: GameChannelMessage) {
-          queryClient.setQueryData<GameState>(["game", gameId], (old) => {
-            if (!old) return old;
+          const old = queryClient.getQueryData<GameState>(["game", gameId]);
+          if (!old) return;
 
-            const roundChanged = data.round !== old.round;
+          const roundChanged = data.round !== old.round;
 
-            // Merge broadcast fields; preserve private fields from HTTP cache
-            const updated: GameState = {
-              ...old,
-              status:       data.status,
-              current_turn: data.current_turn,
-              round:        data.round,
-              crib_owner:   data.crib_owner,
-              board:        data.board,
-              starter_card: data.starter_card,
-              row_scores:   data.row_scores,
-              col_scores:   data.col_scores,
-              crib_score:   data.crib_score,
-              crib_size:    data.crib_size,
-              deck_size:    data.deck_size,
-              player1_peg:  data.player1_peg,
-              player2_peg:  data.player2_peg,
-              winner_slot:  data.winner_slot,
-              // Always preserve — not in broadcast
-              my_slot:      old.my_slot,
-              my_next_card: old.my_next_card,
-            };
+          // Merge broadcast fields; preserve private fields from HTTP cache
+          const updated: GameState = {
+            ...old,
+            status:       data.status,
+            current_turn: data.current_turn,
+            round:        data.round,
+            crib_owner:   data.crib_owner,
+            board:        data.board,
+            starter_card: data.starter_card,
+            row_scores:   data.row_scores,
+            col_scores:   data.col_scores,
+            crib_score:   data.crib_score,
+            crib_size:    data.crib_size,
+            deck_size:    data.deck_size,
+            player1_peg:  data.player1_peg,
+            player2_peg:  data.player2_peg,
+            winner_slot:  data.winner_slot,
+            // Always preserve — not in broadcast
+            my_slot:      old.my_slot,
+            my_next_card: old.my_next_card,
+          };
 
-            // New round means our cached next card is stale — refetch
-            if (roundChanged) {
-              setTimeout(() => {
-                queryClient.invalidateQueries({ queryKey: ["game", gameId] });
-              }, 0);
-            }
+          queryClient.setQueryData(["game", gameId], updated);
 
-            return updated;
-          });
+          // New round means our cached next card is stale — refetch
+          if (roundChanged) {
+            queryClient.invalidateQueries({ queryKey: ["game", gameId] });
+          }
         },
       }
     );

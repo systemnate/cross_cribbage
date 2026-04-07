@@ -1,12 +1,13 @@
 // app/frontend/lib/cable.ts
 import { createConsumer } from "@rails/actioncable";
+import { getToken } from "./storage";
 
 type Consumer = ReturnType<typeof createConsumer>;
 
 let consumer: Consumer | null = null;
 
 function cableUrl(): string {
-  const token = localStorage.getItem("ccg_player_token");
+  const token = getToken();
   return token ? `/cable?token=${token}` : "/cable";
 }
 
