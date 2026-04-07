@@ -34,11 +34,25 @@ RSpec.describe GameChannel, type: :channel do
       }.to have_broadcasted_to("game_#{game.id}")
     end
 
-    it "the payload includes required fields" do
+    it "the payload includes required fields and excludes private HTTP-only fields" do
       game.deal!
-      GameChannel.broadcast_game_state(game)
-      # Verify the broadcast was sent (implicit through have_broadcasted_to passing)
-      expect(game.id).to be_present
+      expect {
+        GameChannel.broadcast_game_state(game)
+      }.to have_broadcasted_to("game_#{game.id}").with(
+        hash_including(
+          "type" => "game_state",
+          "status" => game.status,
+          "current_turn" => game.current_turn,
+          "crib_size" => hash_including("player1", "player2"),
+          "deck_size" => hash_including("player1", "player2")
+        )
+      ).and(
+        have_broadcasted_to("game_#{game.id}").with(
+          ->(payload) {
+            !payload.key?("my_slot") && !payload.key?("my_next_card") && !payload.key?("id")
+          }
+        )
+      )
     end
   end
 end
