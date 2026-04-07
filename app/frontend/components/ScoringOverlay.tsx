@@ -19,12 +19,14 @@ export function ScoringOverlay({ game, mySlot }: ScoringOverlayProps) {
     return () => clearInterval(interval);
   }, [game.status, game.round]);
 
+  if (game.status !== "scoring") return null;
+
   const myScores  = mySlot === "player1" ? game.col_scores : game.row_scores;
   const oppScores = mySlot === "player1" ? game.row_scores : game.col_scores;
   const myTotal   = myScores.reduce<number>((s, v) => s + (v ?? 0), 0) +
     (game.crib_owner === mySlot ? (game.crib_score ?? 0) : 0);
   const oppTotal  = oppScores.reduce<number>((s, v) => s + (v ?? 0), 0) +
-    (game.crib_owner !== mySlot ? (game.crib_score ?? 0) : 0);
+    (game.crib_owner !== null && game.crib_owner !== mySlot ? (game.crib_score ?? 0) : 0);
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -60,7 +62,7 @@ export function ScoringOverlay({ game, mySlot }: ScoringOverlayProps) {
                 <span className="text-blue-300">{s ?? 0}</span>
               </div>
             ))}
-            {game.crib_owner !== mySlot && (
+            {game.crib_owner !== null && game.crib_owner !== mySlot && (
               <div className="flex justify-between text-sm font-mono border-t border-slate-700 mt-1 pt-1">
                 <span className="text-yellow-400">Crib</span>
                 <span className="text-yellow-300">{game.crib_score ?? 0}</span>

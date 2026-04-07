@@ -13,6 +13,7 @@ export function HomePage() {
 
   const createGame = useMutation({
     mutationFn: api.createGame,
+    onMutate: () => setError(null),
     onSuccess: ({ game_id, token }) => {
       clearSession();
       resetConsumer();
@@ -25,6 +26,7 @@ export function HomePage() {
 
   const joinGame = useMutation({
     mutationFn: () => api.joinGame(joinId.trim()),
+    onMutate: () => setError(null),
     onSuccess: ({ game_id, token }) => {
       clearSession();
       resetConsumer();
