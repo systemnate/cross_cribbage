@@ -12,6 +12,7 @@ module Api
     def create
       token = Game.generate_token
       game  = Game.create!(player1_token: token)
+      DestroyGameJob.set(wait: 2.hours).perform_later(game.id)
       render json: { game_id: game.id, token: token }, status: :created
     end
 
