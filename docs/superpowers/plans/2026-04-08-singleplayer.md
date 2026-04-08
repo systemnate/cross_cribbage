@@ -567,13 +567,15 @@ end
 In `app/models/game.rb`, at the bottom of the `private` section (after `assert_active_turn!`), add:
 
 ```ruby
+# NOTE: No delay for now — add `.set(wait: 2.seconds)` before `.perform_later` once
+# the feature is verified working.
 def maybe_enqueue_computer_jobs!
   return unless vs_computer?
 
   if status == "active" && current_turn == "player2"
-    ComputerMoveJob.set(wait: 2.seconds).perform_later(id)
+    ComputerMoveJob.perform_later(id)
   elsif status == "scoring" && !player2_confirmed_scoring
-    ComputerConfirmJob.set(wait: 2.seconds).perform_later(id)
+    ComputerConfirmJob.perform_later(id)
   end
 end
 ```
