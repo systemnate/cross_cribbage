@@ -321,6 +321,12 @@ RSpec.describe Game, type: :model do
         active_game.confirm_scoring!("player1")
       }.to raise_error(Game::Error, /not in scoring phase/i)
     end
+
+    it "raises Game::Error for an invalid slot" do
+      expect {
+        game.confirm_scoring!("invalid")
+      }.to raise_error(Game::Error, /invalid slot/i)
+    end
   end
 
   describe "#both_scoring_confirmed?" do

@@ -6,6 +6,7 @@ class Game < ApplicationRecord
 
   RANKS = %w[A 2 3 4 5 6 7 8 9 10 J Q K].freeze
   SUITS = %w[♠ ♥ ♦ ♣].freeze
+  VALID_SLOTS = %w[player1 player2].freeze
 
   # ── Class helpers ─────────────────────────────────────────────────────
   def self.generate_token
@@ -89,6 +90,7 @@ class Game < ApplicationRecord
   end
 
   def confirm_scoring!(slot)
+    raise Error, "Invalid slot" unless VALID_SLOTS.include?(slot)
     raise Error, "Game is not in scoring phase" unless status == "scoring"
     send("#{slot}_confirmed_scoring=", true)
     save!
