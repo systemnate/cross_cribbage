@@ -49,6 +49,8 @@ class Game < ApplicationRecord
       player1_peg:   player1_peg,
       player2_peg:   player2_peg,
       winner_slot:   winner_slot,
+      player1_confirmed_scoring: player1_confirmed_scoring,
+      player2_confirmed_scoring: player2_confirmed_scoring,
       my_slot:       slot,
       my_next_card:  slot ? send("#{slot}_deck").first : nil
     }

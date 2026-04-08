@@ -104,6 +104,7 @@ RSpec.describe Game, type: :model do
         :board, :starter_card, :row_scores, :col_scores,
         :crib_score, :crib_size, :deck_size,
         :player1_peg, :player2_peg, :winner_slot,
+        :player1_confirmed_scoring, :player2_confirmed_scoring,
         :my_slot, :my_next_card
       )
     end

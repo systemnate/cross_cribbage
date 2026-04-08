@@ -54,5 +54,17 @@ RSpec.describe GameChannel, type: :channel do
         )
       )
     end
+
+    it "includes player confirmation flags in the broadcast" do
+      game.deal!
+      expect {
+        GameChannel.broadcast_game_state(game)
+      }.to have_broadcasted_to("game_#{game.id}").with(
+        hash_including(
+          "player1_confirmed_scoring" => false,
+          "player2_confirmed_scoring" => false
+        )
+      )
+    end
   end
 end

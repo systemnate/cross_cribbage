@@ -34,7 +34,9 @@ class GameChannel < ApplicationCable::Channel
                         player2: game.player2_deck.size },
         player1_peg:  game.player1_peg,
         player2_peg:  game.player2_peg,
-        winner_slot:  game.winner_slot
+        winner_slot:  game.winner_slot,
+        player1_confirmed_scoring: game.player1_confirmed_scoring,
+        player2_confirmed_scoring: game.player2_confirmed_scoring
       }
     )
   end
