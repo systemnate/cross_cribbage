@@ -13,6 +13,12 @@ interface PegBoardProps {
 export function PegBoard({ myPeg, opponentPeg, myBoardScore, oppBoardScore, mySlot, winner }: PegBoardProps) {
   const TOTAL = 31;
 
+  // player1 is always red, player2 is always slate — consistent across both clients
+  const myColor    = mySlot === "player1" ? "bg-red-500 border-red-300"     : "bg-slate-400 border-slate-300";
+  const oppColor   = mySlot === "player1" ? "bg-slate-400 border-slate-300" : "bg-red-500 border-red-300";
+  const myText     = mySlot === "player1" ? "text-red-400"   : "text-slate-300";
+  const oppText    = mySlot === "player1" ? "text-slate-300" : "text-red-400";
+
   return (
     <div className="flex items-center gap-3 bg-slate-900 rounded-lg px-4 py-2 border border-slate-700">
       <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
@@ -30,16 +36,16 @@ export function PegBoard({ myPeg, opponentPeg, myBoardScore, oppBoardScore, mySl
           />
         ))}
 
-        {/* Opponent peg (black) */}
+        {/* Opponent peg */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-400 border-2 border-slate-300 shadow transition-all duration-500"
+          className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 shadow transition-all duration-500 ${oppColor}`}
           style={{ left: `calc(${(opponentPeg / TOTAL) * 100}% - 8px)` }}
           title={`Opponent: ${opponentPeg}`}
         />
 
-        {/* My peg (red) */}
+        {/* My peg */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-red-500 border-2 border-red-300 shadow transition-all duration-500"
+          className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 shadow transition-all duration-500 ${myColor}`}
           style={{ left: `calc(${(myPeg / TOTAL) * 100}% - 8px)` }}
           title={`You: ${myPeg}`}
         />
@@ -48,12 +54,12 @@ export function PegBoard({ myPeg, opponentPeg, myBoardScore, oppBoardScore, mySl
       <div className="text-xs font-mono whitespace-nowrap flex flex-col items-end gap-0.5">
         <span>
           <span className="text-slate-500">You </span>
-          <span className="text-red-400 font-bold">{myPeg}</span>
+          <span className={`font-bold ${myText}`}>{myPeg}</span>
           <span className="text-slate-600 ml-1">(+{myBoardScore})</span>
         </span>
         <span>
           <span className="text-slate-500">Opp </span>
-          <span className="text-slate-300 font-bold">{opponentPeg}</span>
+          <span className={`font-bold ${oppText}`}>{opponentPeg}</span>
           <span className="text-slate-600 ml-1">(+{oppBoardScore})</span>
         </span>
       </div>
