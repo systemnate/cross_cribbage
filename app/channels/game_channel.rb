@@ -36,7 +36,8 @@ class GameChannel < ApplicationCable::Channel
         player2_peg:  game.player2_peg,
         winner_slot:  game.winner_slot,
         player1_confirmed_scoring: game.player1_confirmed_scoring,
-        player2_confirmed_scoring: game.player2_confirmed_scoring
+        player2_confirmed_scoring: game.player2_confirmed_scoring,
+        crib_hand: game.status == "scoring" ? game.crib : nil
       }
     )
   end

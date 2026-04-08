@@ -1,6 +1,6 @@
 // app/frontend/components/ScoringOverlay.tsx
 import React, { useEffect, useState } from "react";
-import type { GameState } from "../types/game";
+import type { Card, GameState } from "../types/game";
 
 interface ScoringOverlayProps {
   game: GameState;
@@ -9,12 +9,26 @@ interface ScoringOverlayProps {
   isConfirmPending: boolean;
 }
 
+const SUIT_COLOR: Record<string, string> = {
+  "♥": "text-red-400", "♦": "text-red-400",
+  "♠": "text-slate-100", "♣": "text-slate-100",
+};
+
+function MiniCard({ card }: { card: Card }) {
+  return (
+    <div className="w-9 h-12 rounded border border-slate-600 bg-slate-800 flex flex-col items-center justify-center gap-0.5 shadow-sm">
+      <span className="text-slate-100 text-xs font-bold leading-none">{card.rank}</span>
+      <span className={`${SUIT_COLOR[card.suit] ?? "text-slate-100"} text-xs leading-none`}>{card.suit}</span>
+    </div>
+  );
+}
+
 export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: ScoringOverlayProps) {
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(30);
 
   useEffect(() => {
     if (game.status !== "scoring") return;
-    setCountdown(10);
+    setCountdown(30);
     const interval = setInterval(() => {
       setCountdown((n) => Math.max(0, n - 1));
     }, 1000);
@@ -83,6 +97,20 @@ export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: Sc
             </div>
           </div>
         </div>
+
+        {game.crib_hand && game.crib_hand.length > 0 && (
+          <div className="mb-4">
+            <p className="text-yellow-400 text-xs font-semibold mb-2 text-center">
+              Crib hand {game.crib_owner === mySlot ? "(yours)" : "(opponent's)"}
+            </p>
+            <div className="flex justify-center gap-1.5">
+              {game.starter_card && <MiniCard card={game.starter_card} />}
+              {game.crib_hand.map((card) => (
+                <MiniCard key={card.id} card={card} />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="text-center">
           {myTotal > oppTotal && <p className="text-green-400 font-bold mb-2">You lead by {myTotal - oppTotal} pts</p>}

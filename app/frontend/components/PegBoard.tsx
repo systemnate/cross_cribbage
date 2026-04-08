@@ -4,11 +4,13 @@ import React from "react";
 interface PegBoardProps {
   myPeg: number;
   opponentPeg: number;
+  myBoardScore: number;
+  oppBoardScore: number;
   mySlot: "player1" | "player2";
   winner: "player1" | "player2" | null;
 }
 
-export function PegBoard({ myPeg, opponentPeg, mySlot, winner }: PegBoardProps) {
+export function PegBoard({ myPeg, opponentPeg, myBoardScore, oppBoardScore, mySlot, winner }: PegBoardProps) {
   const TOTAL = 31;
 
   return (
@@ -43,11 +45,17 @@ export function PegBoard({ myPeg, opponentPeg, mySlot, winner }: PegBoardProps) 
         />
       </div>
 
-      <div className="text-xs font-mono whitespace-nowrap">
-        <span className="text-red-400">{myPeg}</span>
-        <span className="text-slate-500 mx-1">/</span>
-        <span className="text-slate-400">{opponentPeg}</span>
-        <span className="text-slate-600 ml-1">· {TOTAL}</span>
+      <div className="text-xs font-mono whitespace-nowrap flex flex-col items-end gap-0.5">
+        <span>
+          <span className="text-slate-500">You </span>
+          <span className="text-red-400 font-bold">{myPeg}</span>
+          <span className="text-slate-600 ml-1">(+{myBoardScore})</span>
+        </span>
+        <span>
+          <span className="text-slate-500">Opp </span>
+          <span className="text-slate-300 font-bold">{opponentPeg}</span>
+          <span className="text-slate-600 ml-1">(+{oppBoardScore})</span>
+        </span>
       </div>
 
       {winner && (

@@ -70,6 +70,11 @@ export function GamePage() {
   const oppCribDiscards = game.crib_size[oppSlot];
   const myDeckSize      = game.deck_size[mySlot];
   const isInteractable  = isMyTurn && game.status === "active";
+  const mustDiscardFirst = isInteractable && myCribDiscards < 2 && myDeckSize <= (2 - myCribDiscards);
+
+  const sum = (scores: (number | null)[]) => scores.reduce((acc, s) => acc + (s ?? 0), 0);
+  const myBoardScore  = sum(mySlot === "player1" ? game.col_scores : game.row_scores);
+  const oppBoardScore = sum(mySlot === "player1" ? game.row_scores : game.col_scores);
 
   const { id: gid } = game;
 
@@ -91,6 +96,8 @@ export function GamePage() {
       <PegBoard
         myPeg={myPeg}
         opponentPeg={oppPeg}
+        myBoardScore={myBoardScore}
+        oppBoardScore={oppBoardScore}
         mySlot={mySlot}
         winner={game.winner_slot}
       />
@@ -112,7 +119,7 @@ export function GamePage() {
           starter={game.starter_card}
           rowScores={game.row_scores}
           colScores={game.col_scores}
-          isMyTurn={isInteractable}
+          isMyTurn={isInteractable && !mustDiscardFirst}
           onCellClick={handleCellClick}
         />
 
