@@ -88,6 +88,16 @@ class Game < ApplicationRecord
     save!
   end
 
+  def confirm_scoring!(slot)
+    raise Error, "Game is not in scoring phase" unless status == "scoring"
+    send("#{slot}_confirmed_scoring=", true)
+    save!
+  end
+
+  def both_scoring_confirmed?
+    player1_confirmed_scoring && player2_confirmed_scoring
+  end
+
   def advance_round!
     self.round         += 1
     new_crib_owner      = opposite(crib_owner)
@@ -119,6 +129,8 @@ class Game < ApplicationRecord
     self.row_scores            = [nil, nil, nil, nil, nil]
     self.col_scores            = [nil, nil, nil, nil, nil]
     self.crib_score            = nil
+    self.player1_confirmed_scoring = false
+    self.player2_confirmed_scoring = false
 
     # Nibs: starter is a Jack → crib owner scores 2 pts
     if starter["rank"] == "J"

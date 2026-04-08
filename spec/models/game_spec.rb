@@ -289,6 +289,63 @@ RSpec.describe Game, type: :model do
     end
   end
 
+  describe "#confirm_scoring!" do
+    let(:game) do
+      g = create(:game, :active)
+      g.deal!
+      g.reload
+      g.update!(status: "scoring")
+      g
+    end
+
+    it "sets player1_confirmed_scoring when called for player1" do
+      game.confirm_scoring!("player1")
+      expect(game.reload.player1_confirmed_scoring).to be true
+    end
+
+    it "sets player2_confirmed_scoring when called for player2" do
+      game.confirm_scoring!("player2")
+      expect(game.reload.player2_confirmed_scoring).to be true
+    end
+
+    it "is idempotent — calling twice does not error" do
+      game.confirm_scoring!("player1")
+      expect { game.confirm_scoring!("player1") }.not_to raise_error
+    end
+
+    it "raises Game::Error when game is not in scoring phase" do
+      active_game = create(:game, :active)
+      active_game.deal!
+      active_game.reload
+      expect {
+        active_game.confirm_scoring!("player1")
+      }.to raise_error(Game::Error, /not in scoring phase/i)
+    end
+  end
+
+  describe "#both_scoring_confirmed?" do
+    let(:game) { create(:game, :active, status: "scoring") }
+
+    it "returns false when neither player has confirmed" do
+      expect(game.both_scoring_confirmed?).to be false
+    end
+
+    it "returns false when only player1 has confirmed" do
+      game.update!(player1_confirmed_scoring: true)
+      expect(game.both_scoring_confirmed?).to be false
+    end
+
+    it "returns false when only player2 has confirmed" do
+      game.update!(player2_confirmed_scoring: true)
+      expect(game.both_scoring_confirmed?).to be false
+    end
+
+    it "returns true when both players have confirmed" do
+      game.update!(player1_confirmed_scoring: true, player2_confirmed_scoring: true)
+      expect(game.both_scoring_confirmed?).to be true
+    end
+  end
+
   describe "scoring phase" do
     it "enters scoring when board is full" do
       game = create(:game, :active)
