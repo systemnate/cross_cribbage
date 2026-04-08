@@ -53,6 +53,7 @@ module Api
           @game.confirm_scoring!(current_slot)
           @game.advance_round! if @game.both_scoring_confirmed?
         end
+        @game.reload
       end
     end
 
