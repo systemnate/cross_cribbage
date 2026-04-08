@@ -94,7 +94,7 @@ export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: Sc
             disabled={iConfirmed || isConfirmPending}
             className="w-full mt-2 mb-3 px-4 py-2 rounded-lg font-semibold text-sm bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
           >
-            {iConfirmed ? "Ready" : "Ready for next round"}
+            {iConfirmed ? "Ready" : isConfirmPending ? "Confirming…" : "Ready for next round"}
           </button>
 
           <div className="flex justify-between text-xs mb-2">

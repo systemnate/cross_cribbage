@@ -38,6 +38,8 @@ export function useGameChannel(gameId: string | null): void {
             player1_peg:  data.player1_peg,
             player2_peg:  data.player2_peg,
             winner_slot:  data.winner_slot,
+            player1_confirmed_scoring: data.player1_confirmed_scoring,
+            player2_confirmed_scoring: data.player2_confirmed_scoring,
             // Always preserve — not in broadcast
             my_slot:      old.my_slot,
             my_next_card: old.my_next_card,
