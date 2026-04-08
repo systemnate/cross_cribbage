@@ -9,6 +9,7 @@ Rails.application.routes.draw do
         post :join
         post :place_card
         post :discard_to_crib
+        post :confirm_round
       end
     end
   end

@@ -92,4 +92,45 @@ RSpec.describe "Api::Games", type: :request do
       expect(json).to include("crib_size")
     end
   end
+
+  describe "POST /api/games/:id/confirm_round" do
+    let(:game) { create(:game, :active) }
+
+    before do
+      game.deal!
+      game.reload
+      game.update!(status: "scoring")
+    end
+
+    it "sets the confirming player's flag and returns ok" do
+      post "/api/games/#{game.id}/confirm_round",
+           headers: { "X-Player-Token" => game.player1_token }
+      expect(response).to have_http_status(:ok)
+      expect(game.reload.player1_confirmed_scoring).to be true
+    end
+
+    it "advances the round immediately when both players confirm" do
+      post "/api/games/#{game.id}/confirm_round",
+           headers: { "X-Player-Token" => game.player1_token }
+      post "/api/games/#{game.id}/confirm_round",
+           headers: { "X-Player-Token" => game.player2_token }
+      expect(response).to have_http_status(:ok)
+      expect(game.reload.status).to eq("active")
+      expect(game.reload.round).to eq(2)
+    end
+
+    it "returns error when called outside scoring phase" do
+      non_scoring = create(:game, :active)
+      non_scoring.deal!
+      non_scoring.reload
+      post "/api/games/#{non_scoring.id}/confirm_round",
+           headers: { "X-Player-Token" => non_scoring.player1_token }
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "returns 401 without a token" do
+      post "/api/games/#{game.id}/confirm_round"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

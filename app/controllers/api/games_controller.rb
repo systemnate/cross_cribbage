@@ -3,7 +3,7 @@
 
 module Api
   class GamesController < ApiController
-    GAME_ACTIONS = %i[show place_card discard_to_crib].freeze
+    GAME_ACTIONS = %i[show place_card discard_to_crib confirm_round].freeze
 
     before_action :set_game,          only: [:join] + GAME_ACTIONS
     before_action :authorize_player!, only: GAME_ACTIONS
@@ -35,12 +35,23 @@ module Api
 
     # POST /api/games/:id/place_card  { row: int, col: int }
     def place_card
-      game_action { @game.place_card!(current_slot, params[:row].to_i, params[:col].to_i) }
+      game_action do
+        @game.place_card!(current_slot, params[:row].to_i, params[:col].to_i)
+        AdvanceRoundJob.set(wait: 10.seconds).perform_later(@game.id) if @game.status == "scoring"
+      end
     end
 
     # POST /api/games/:id/discard_to_crib
     def discard_to_crib
       game_action { @game.discard_to_crib!(current_slot) }
+    end
+
+    # POST /api/games/:id/confirm_round
+    def confirm_round
+      game_action do
+        @game.confirm_scoring!(current_slot)
+        @game.advance_round! if @game.both_scoring_confirmed?
+      end
     end
 
     private
@@ -65,7 +76,6 @@ module Api
     def game_action(&block)
       block.call
       GameChannel.broadcast_game_state(@game)
-      AdvanceRoundJob.set(wait: 3.seconds).perform_later(@game.id) if @game.status == "scoring"
       render json: @game.serialize_for(@current_token)
     rescue Game::Error => e
       render_error(e.message)
