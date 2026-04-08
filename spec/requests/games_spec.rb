@@ -77,6 +77,15 @@ RSpec.describe "Api::Games", type: :request do
       post "/api/games/#{game.id}/place_card", params: { row: 0, col: 0 }
       expect(response).to have_http_status(:unauthorized)
     end
+
+    it "does not enqueue AdvanceRoundJob on a mid-game card placement" do
+      token = game.send("#{game.current_turn}_token")
+      expect {
+        post "/api/games/#{game.id}/place_card",
+             params: { row: 0, col: 0 },
+             headers: { "X-Player-Token" => token }
+      }.not_to have_enqueued_job(AdvanceRoundJob)
+    end
   end
 
   describe "POST /api/games/:id/discard_to_crib" do
@@ -131,6 +140,13 @@ RSpec.describe "Api::Games", type: :request do
     it "returns 401 without a token" do
       post "/api/games/#{game.id}/confirm_round"
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "does not enqueue AdvanceRoundJob when only one player confirms" do
+      expect {
+        post "/api/games/#{game.id}/confirm_round",
+             headers: { "X-Player-Token" => game.player1_token }
+      }.not_to have_enqueued_job(AdvanceRoundJob)
     end
   end
 end

@@ -49,8 +49,10 @@ module Api
     # POST /api/games/:id/confirm_round
     def confirm_round
       game_action do
-        @game.confirm_scoring!(current_slot)
-        @game.advance_round! if @game.both_scoring_confirmed?
+        @game.with_lock do
+          @game.confirm_scoring!(current_slot)
+          @game.advance_round! if @game.both_scoring_confirmed?
+        end
       end
     end
 
