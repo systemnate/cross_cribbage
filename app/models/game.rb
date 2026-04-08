@@ -51,6 +51,7 @@ class Game < ApplicationRecord
       winner_slot:   winner_slot,
       player1_confirmed_scoring: player1_confirmed_scoring,
       player2_confirmed_scoring: player2_confirmed_scoring,
+      crib_hand:     status == "scoring" ? crib : nil,
       my_slot:       slot,
       my_next_card:  slot ? send("#{slot}_deck").first : nil
     }
@@ -62,6 +63,9 @@ class Game < ApplicationRecord
     assert_active_turn!(slot)
     raise Error, "Invalid position" unless row.between?(0, 4) && col.between?(0, 4)
 
+    remaining_crib = 2 - send("#{slot}_crib_discards")
+    raise Error, "Must discard to crib first" if send("#{slot}_deck").size <= remaining_crib
+
     current_board = board.map(&:dup)
     raise Error, "Cell is occupied" if current_board[row][col]
 
@@ -72,7 +76,12 @@ class Game < ApplicationRecord
     rescore_row!(row)
     rescore_col!(col)
 
-    board_full? ? enter_scoring_phase! : flip_turn!
+    if board_full?
+      flush_remaining_to_crib!
+      enter_scoring_phase!
+    else
+      flip_turn!
+    end
 
     save!
   end
@@ -187,6 +196,16 @@ class Game < ApplicationRecord
 
   def board_full?
     board.flatten.compact.size == 25
+  end
+
+  def flush_remaining_to_crib!
+    %w[player1 player2].each do |s|
+      remaining = send("#{s}_deck")
+      next if remaining.empty?
+      self.crib = crib + remaining
+      send("#{s}_deck=", [])
+      send("#{s}_crib_discards=", send("#{s}_crib_discards") + remaining.size)
+    end
   end
 
   def assert_active_turn!(slot)

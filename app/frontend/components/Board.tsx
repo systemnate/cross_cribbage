@@ -37,6 +37,18 @@ export function Board({
 
   return (
     <div className="flex flex-col gap-1">
+      {/* Direction indicator: my hands run vertically (columns) */}
+      <div className="flex gap-1 items-center">
+        <div className="flex gap-1">
+          {displayBoard[0]?.map((_, cIdx) => (
+            <div key={cIdx} className="w-11 text-center text-xs text-green-400 leading-none">
+              ↓
+            </div>
+          ))}
+        </div>
+        <div className="w-8 ml-1 text-right text-xs text-blue-400 whitespace-nowrap">opp →</div>
+      </div>
+
       {displayBoard.map((row, rIdx) => (
         <div key={rIdx} className="flex items-center gap-1">
           {row.map((cell, cIdx) => (
@@ -56,13 +68,13 @@ export function Board({
       ))}
 
       {/* My column scores (below each column) */}
-      <div className="flex gap-1 mt-1">
+      <div className="flex gap-1 mt-1 items-center">
         {displayBoard[0]?.map((_, cIdx) => (
           <div key={cIdx} className="w-11 text-center text-xs font-mono text-green-400">
             {myHandScores[cIdx] != null ? myHandScores[cIdx] : "—"}
           </div>
         ))}
-        <div className="w-8" /> {/* spacer for row score column */}
+        <div className="w-8 ml-1 text-right text-xs text-green-400">you</div>
       </div>
     </div>
   );
