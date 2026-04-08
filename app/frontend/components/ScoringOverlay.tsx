@@ -5,14 +5,16 @@ import type { GameState } from "../types/game";
 interface ScoringOverlayProps {
   game: GameState;
   mySlot: "player1" | "player2";
+  onConfirm: () => void;
+  isConfirmPending: boolean;
 }
 
-export function ScoringOverlay({ game, mySlot }: ScoringOverlayProps) {
-  const [countdown, setCountdown] = useState(3);
+export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: ScoringOverlayProps) {
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
     if (game.status !== "scoring") return;
-    setCountdown(3);
+    setCountdown(10);
     const interval = setInterval(() => {
       setCountdown((n) => Math.max(0, n - 1));
     }, 1000);
@@ -27,6 +29,13 @@ export function ScoringOverlay({ game, mySlot }: ScoringOverlayProps) {
     (game.crib_owner === mySlot ? (game.crib_score ?? 0) : 0);
   const oppTotal  = oppScores.reduce<number>((s, v) => s + (v ?? 0), 0) +
     (game.crib_owner !== null && game.crib_owner !== mySlot ? (game.crib_score ?? 0) : 0);
+
+  const iConfirmed       = mySlot === "player1"
+    ? game.player1_confirmed_scoring
+    : game.player2_confirmed_scoring;
+  const opponentConfirmed = mySlot === "player1"
+    ? game.player2_confirmed_scoring
+    : game.player1_confirmed_scoring;
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -79,6 +88,24 @@ export function ScoringOverlay({ game, mySlot }: ScoringOverlayProps) {
           {myTotal > oppTotal && <p className="text-green-400 font-bold mb-2">You lead by {myTotal - oppTotal} pts</p>}
           {oppTotal > myTotal && <p className="text-red-400 font-bold mb-2">Opponent leads by {oppTotal - myTotal} pts</p>}
           {myTotal === oppTotal && <p className="text-slate-400 mb-2">Tied this round</p>}
+
+          <button
+            onClick={onConfirm}
+            disabled={iConfirmed || isConfirmPending}
+            className="w-full mt-2 mb-3 px-4 py-2 rounded-lg font-semibold text-sm bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+          >
+            {iConfirmed ? "Ready" : "Ready for next round"}
+          </button>
+
+          <div className="flex justify-between text-xs mb-2">
+            <span className={iConfirmed ? "text-green-400" : "text-slate-500"}>
+              You: {iConfirmed ? "Ready ✓" : "waiting…"}
+            </span>
+            <span className={opponentConfirmed ? "text-green-400" : "text-slate-500"}>
+              Opponent: {opponentConfirmed ? "Ready ✓" : "waiting…"}
+            </span>
+          </div>
+
           <p className="text-slate-500 text-sm">Next round in {countdown}…</p>
         </div>
       </div>

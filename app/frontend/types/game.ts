@@ -33,6 +33,8 @@ export interface GameState {
   player1_peg: number;
   player2_peg: number;
   winner_slot: "player1" | "player2" | null;
+  player1_confirmed_scoring: boolean;
+  player2_confirmed_scoring: boolean;
   // Private — only included in HTTP responses, never in broadcasts
   my_slot: "player1" | "player2" | null;
   my_next_card: Card | null;

@@ -81,6 +81,10 @@ export function GamePage() {
     action.mutate(() => api.discardToCrib(gid));
   }
 
+  function handleConfirmRound() {
+    action.mutate(() => api.confirmRound(gid));
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-3 gap-3">
       {/* Peg track */}
@@ -136,7 +140,12 @@ export function GamePage() {
       )}
 
       {/* Scoring overlay — self-renders null when status !== "scoring" */}
-      <ScoringOverlay game={game} mySlot={mySlot} />
+      <ScoringOverlay
+        game={game}
+        mySlot={mySlot}
+        onConfirm={handleConfirmRound}
+        isConfirmPending={action.isPending}
+      />
     </div>
   );
 }

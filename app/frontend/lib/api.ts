@@ -36,4 +36,7 @@ export const api = {
 
   discardToCrib: (id: string): Promise<GameState> =>
     request("POST", `/games/${id}/discard_to_crib`),
+
+  confirmRound: (id: string): Promise<GameState> =>
+    request("POST", `/games/${id}/confirm_round`),
 };
