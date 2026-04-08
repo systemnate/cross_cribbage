@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(bin/rails generate:*)",
+      "Bash(bin/rails db:migrate:*)",
+      "Bash(git commit:*)",
+      "Bash(bundle exec:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}
