@@ -19,15 +19,20 @@ class ComputerPlayer
 
     best_move       = nil
     best_net_impact = nil
+    best_potential  = nil
 
     5.times do |row|
       5.times do |col|
         next if @game.board[row][col]  # occupied
 
         net_impact = simulate_net_impact(row, col, next_card)
+        potential  = early_game_potential(row, col, next_card)
 
-        if best_net_impact.nil? || net_impact > best_net_impact
+        if best_net_impact.nil? ||
+           net_impact > best_net_impact ||
+           (net_impact == best_net_impact && potential > best_potential)
           best_net_impact = net_impact
+          best_potential  = potential
           best_move = { action: :place, row: row, col: col }
         end
       end
@@ -35,8 +40,13 @@ class ComputerPlayer
 
     # Prefer discarding over a net-neutral/negative move if crib still has room
     # and player2 owns the crib (discarding benefits the AI).
+    # Wait until the opponent has placed at least 6 cards so board simulation
+    # is meaningful — early on every move looks neutral and premature discards
+    # are not a real strategy.
+    opponent_cards_placed = 14 - @game.player1_crib_discards - @game.player1_deck.size
     if best_net_impact && best_net_impact <= 0 &&
-       @game.player2_crib_discards < 2 && @game.crib_owner == "player2"
+       @game.player2_crib_discards < 2 && @game.crib_owner == "player2" &&
+       opponent_cards_placed >= 6
       return { action: :discard }
     end
 
@@ -44,6 +54,33 @@ class ComputerPlayer
   end
 
   private
+
+  # Score the early-game potential of placing card at (row, col).
+  # Rewards placements that set up runs or fifteens with existing neighbors.
+  def early_game_potential(row, col, card)
+    potential  = 0
+    card_rank  = CribbageHand::RANK_ORDER[card["rank"]]
+    card_val   = card_fifteen_value(card)
+
+    existing = @game.board[row].compact + @game.board.map { |r| r[col] }.compact
+
+    existing.each do |other|
+      other_rank = CribbageHand::RANK_ORDER[other["rank"]]
+      other_val  = card_fifteen_value(other)
+
+      potential += 1 if (card_rank - other_rank).abs == 1  # run-of-2 seed
+      potential += 1 if card_val + other_val == 5          # sum-to-5 (fifteen setup with any 10-value card)
+    end
+
+    potential
+  end
+
+  def card_fifteen_value(card)
+    rank = card["rank"]
+    return 10 if %w[10 J Q K].include?(rank)
+    return 1  if rank == "A"
+    rank.to_i
+  end
 
   def simulate_net_impact(row, col, card)
     current_row_score = @game.row_scores[row].to_i
