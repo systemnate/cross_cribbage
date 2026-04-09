@@ -62,6 +62,27 @@ RSpec.describe ComputerPlayer do
     end
   end
 
+  # --- Scenario: deck size <= remaining crib slots → must discard regardless of crib ownership
+  describe "#decide when forced to discard (deck size <= remaining crib slots)" do
+    let(:starter) { card("3", "♥", "c2") }
+
+    let(:game) do
+      create(:game,
+        player2_deck:          [card("2", "♠", "c1"), card("7", "♦", "c3")],
+        board:                 board_with_starter(starter),
+        row_scores:            nil_scores,
+        col_scores:            nil_scores,
+        starter_card:          starter,
+        player2_crib_discards: 0,
+        crib_owner:            "player1"   # AI doesn't own crib — still must discard
+      )
+    end
+
+    it "returns :discard because deck.size (2) <= remaining_crib (2)" do
+      expect(described_class.new(game).decide).to eq({ action: :discard })
+    end
+  end
+
   # --- Scenario: row 0 has 5♠ and 10♥. Next card is 5♦.
   # Placing 5♦ in row 0 scores: pair(5♠,5♦)=2 + fifteen(5♠+10♥)=2 + fifteen(5♦+10♥)=2 = 6.
   # Placing 5♦ in any other row scores 0 (lone card, no combos with A starter).
