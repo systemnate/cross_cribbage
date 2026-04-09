@@ -16,7 +16,7 @@ const SUIT_COLOR: Record<string, string> = {
 };
 
 export function BoardCell({ card, isStarter, isClickable, onClick }: BoardCellProps) {
-  const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-sm font-bold select-none transition-all";
+  const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-xl font-bold select-none transition-all";
 
   if (!card) {
     const empty = isClickable
@@ -32,7 +32,7 @@ export function BoardCell({ card, isStarter, isClickable, onClick }: BoardCellPr
   return (
     <div className={`${base} ${borderClass} ${bgClass}`}>
       <span className="text-slate-100 leading-none">{card.rank}</span>
-      <span className={`${suitColor} text-xs leading-none`}>{card.suit}</span>
+      <span className={`${suitColor} text-2xl leading-none`}>{card.suit}</span>
     </div>
   );
 }

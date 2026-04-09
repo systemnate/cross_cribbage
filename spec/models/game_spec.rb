@@ -388,6 +388,37 @@ RSpec.describe Game, type: :model do
         expect(game.status).to eq("scoring")
       end
     end
+
+    it "crib always has exactly 4 cards when neither player explicitly discards" do
+      game = create(:game, :active)
+      game.deal!
+      game.reload
+      fill_board!(game)
+
+      expect(game.crib.size).to eq(4)
+      expect(game.player1_crib_discards).to eq(2)
+      expect(game.player2_crib_discards).to eq(2)
+    end
+
+    it "crib has exactly 4 cards even if only one player explicitly discards" do
+      game = create(:game, :active)
+      game.deal!
+      game.reload
+
+      # force player1 to discard one card explicitly before fill_board! takes over
+      if game.current_turn == "player1"
+        game.discard_to_crib!("player1")
+        game.reload
+      else
+        game.discard_to_crib!("player2")
+        game.reload
+        game.discard_to_crib!("player1")
+        game.reload
+      end
+
+      fill_board!(game)
+      expect(game.crib.size).to eq(4)
+    end
   end
 end
 
