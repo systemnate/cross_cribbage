@@ -36,12 +36,12 @@ export function Board({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 w-full h-full md:h-auto">
       {/* Direction indicator: my hands run vertically (columns) */}
-      <div className="flex gap-1 items-center">
-        <div className="flex gap-1">
+      <div className="flex-shrink-0 flex gap-1 items-center">
+        <div className="flex gap-1 flex-1 min-w-0">
           {displayBoard[0]?.map((_, cIdx) => (
-            <div key={cIdx} className="w-11 text-center text-xs text-green-400 leading-none">
+            <div key={cIdx} className="flex-1 min-w-0 text-center text-xs text-green-400 leading-none">
               ↓
             </div>
           ))}
@@ -50,7 +50,7 @@ export function Board({
       </div>
 
       {displayBoard.map((row, rIdx) => (
-        <div key={rIdx} className="flex items-center gap-1">
+        <div key={rIdx} className="flex-1 min-h-0 md:flex-none flex items-center gap-1">
           {row.map((cell, cIdx) => (
             <BoardCell
               key={cIdx}
@@ -61,19 +61,21 @@ export function Board({
             />
           ))}
           {/* Opponent's row score (right of each row) */}
-          <span className="w-8 text-right text-xs font-mono text-blue-400 ml-1">
+          <span className="flex-shrink-0 w-8 text-right text-xs font-mono text-blue-400 ml-1">
             {oppHandScores[rIdx] != null ? oppHandScores[rIdx] : "—"}
           </span>
         </div>
       ))}
 
       {/* My column scores (below each column) */}
-      <div className="flex gap-1 mt-1 items-center">
-        {displayBoard[0]?.map((_, cIdx) => (
-          <div key={cIdx} className="w-11 text-center text-xs font-mono text-green-400">
-            {myHandScores[cIdx] != null ? myHandScores[cIdx] : "—"}
-          </div>
-        ))}
+      <div className="flex-shrink-0 flex gap-1 mt-1 items-center">
+        <div className="flex gap-1 flex-1 min-w-0">
+          {displayBoard[0]?.map((_, cIdx) => (
+            <div key={cIdx} className="flex-1 min-w-0 text-center text-xs font-mono text-green-400">
+              {myHandScores[cIdx] != null ? myHandScores[cIdx] : "—"}
+            </div>
+          ))}
+        </div>
         <div className="w-8 ml-1 text-right text-xs text-green-400">you</div>
       </div>
     </div>

@@ -20,7 +20,7 @@ export function PegBoard({ myPeg, opponentPeg, myBoardScore, oppBoardScore, mySl
   const oppText    = mySlot === "player1" ? "text-slate-300" : "text-red-400";
 
   return (
-    <div className="flex items-center gap-3 bg-slate-900 rounded-lg px-4 py-2 border border-slate-700">
+    <div className="flex items-center gap-3 bg-slate-900 rounded-lg px-2 py-2 sm:px-4 border border-slate-700">
       <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
         Peg track
       </span>

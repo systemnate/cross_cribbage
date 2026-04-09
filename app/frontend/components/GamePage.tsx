@@ -91,68 +91,72 @@ export function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-3 gap-3">
-      {/* Peg track */}
-      <PegBoard
-        myPeg={myPeg}
-        opponentPeg={oppPeg}
-        myBoardScore={myBoardScore}
-        oppBoardScore={oppBoardScore}
-        mySlot={mySlot}
-        winner={game.winner_slot}
-      />
-
-      {/* Round / turn info */}
-      <div className="flex items-center justify-between text-xs text-slate-500">
-        <span>Round {game.round}</span>
-        <span className={isMyTurn ? "text-green-400 font-semibold" : ""}>
-          {isMyTurn ? "Your turn" : "Opponent's turn"}
-        </span>
-        <span>Crib: {game.crib_owner === mySlot ? "Yours" : "Opponent's"}</span>
-      </div>
-
-      {/* Main area: board + right panel */}
-      <div className="flex gap-4 items-start">
-        <Board
-          board={game.board}
+    <div className="h-dvh bg-slate-950 overflow-hidden">
+      <div className="h-full w-full max-w-3xl mx-auto text-slate-100 flex flex-col p-2 gap-2 sm:p-3 sm:gap-3">
+        {/* Peg track */}
+        <PegBoard
+          myPeg={myPeg}
+          opponentPeg={oppPeg}
+          myBoardScore={myBoardScore}
+          oppBoardScore={oppBoardScore}
           mySlot={mySlot}
-          starter={game.starter_card}
-          rowScores={game.row_scores}
-          colScores={game.col_scores}
-          isMyTurn={isInteractable && !mustDiscardFirst}
-          onCellClick={handleCellClick}
+          winner={game.winner_slot}
         />
 
-        <div className="flex flex-col gap-4 min-w-[100px]">
-          <CardPreview
-            card={game.my_next_card}
-            deckSize={myDeckSize}
-            isMyTurn={isInteractable}
-            onDiscard={handleDiscard}
-            canDiscard={myCribDiscards < 2}
-            isLoading={action.isPending}
-          />
-
-          <CribArea
-            myCribCount={myCribDiscards}
-            opponentCribCount={oppCribDiscards}
-            isMyCrib={game.crib_owner === mySlot}
-            cribScore={game.crib_score}
-          />
+        {/* Round / turn info */}
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span>Round {game.round}</span>
+          <span className={isMyTurn ? "text-green-400 font-semibold" : ""}>
+            {isMyTurn ? "Your turn" : "Opponent's turn"}
+          </span>
+          <span>Crib: {game.crib_owner === mySlot ? "Yours" : "Opponent's"}</span>
         </div>
+
+        {/* Main area: board + right panel */}
+        <div className="flex-1 min-h-0 flex flex-col gap-3 md:flex-row md:gap-4 md:items-start">
+          <div className="flex-1 min-h-0 md:min-w-0">
+            <Board
+              board={game.board}
+              mySlot={mySlot}
+              starter={game.starter_card}
+              rowScores={game.row_scores}
+              colScores={game.col_scores}
+              isMyTurn={isInteractable && !mustDiscardFirst}
+              onCellClick={handleCellClick}
+            />
+          </div>
+
+          <div className="flex-shrink-0 flex gap-4 md:flex-col md:min-w-[100px]">
+            <CardPreview
+              card={game.my_next_card}
+              deckSize={myDeckSize}
+              isMyTurn={isInteractable}
+              onDiscard={handleDiscard}
+              canDiscard={myCribDiscards < 2}
+              isLoading={action.isPending}
+            />
+
+            <CribArea
+              myCribCount={myCribDiscards}
+              opponentCribCount={oppCribDiscards}
+              isMyCrib={game.crib_owner === mySlot}
+              cribScore={game.crib_score}
+            />
+          </div>
+        </div>
+
+        {action.error && (
+          <p className="text-red-400 text-xs">{action.error.message}</p>
+        )}
+
+        {/* Scoring overlay — self-renders null when status !== "scoring" */}
+        <ScoringOverlay
+          game={game}
+          mySlot={mySlot}
+          onConfirm={handleConfirmRound}
+          isConfirmPending={action.isPending}
+        />
       </div>
-
-      {action.error && (
-        <p className="text-red-400 text-xs">{action.error.message}</p>
-      )}
-
-      {/* Scoring overlay — self-renders null when status !== "scoring" */}
-      <ScoringOverlay
-        game={game}
-        mySlot={mySlot}
-        onConfirm={handleConfirmRound}
-        isConfirmPending={action.isPending}
-      />
     </div>
   );
 }
