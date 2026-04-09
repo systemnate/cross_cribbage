@@ -15,7 +15,12 @@
       "Bash(npx tsc:*)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
       "Bash(/Users/natedalo/Desktop/workspace/cross_cribbage/node_modules/.bin/tsc --noEmit)",
-      "Bash(./node_modules/.bin/tsc:*)"
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(bundle install:*)",
+      "Bash(bin/rails solid_queue:install:migrations)",
+      "Bash(bin/rails solid_cache:install:migrations)",
+      "Bash(bin/rails solid_queue:install:*)",
+      "Bash(bin/rails solid_cache:install:*)"
     ]
   }
 }

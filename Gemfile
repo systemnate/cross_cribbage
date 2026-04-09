@@ -6,6 +6,8 @@ gem "propshaft"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 gem "solid_cable", "~> 3.0"
+gem "solid_queue"
+gem "solid_cache"
 gem "vite_rails", "~> 3.0"
 gem "rack-cors"
 gem "bootsnap", require: false
