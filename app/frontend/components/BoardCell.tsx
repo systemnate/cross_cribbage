@@ -16,7 +16,7 @@ const SUIT_COLOR: Record<string, string> = {
 };
 
 export function BoardCell({ card, isStarter, isClickable, onClick }: BoardCellProps) {
-  const base = "w-11 h-14 rounded-md flex flex-col items-center justify-center text-sm font-bold select-none transition-all";
+  const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-sm font-bold select-none transition-all";
 
   if (!card) {
     const empty = isClickable
