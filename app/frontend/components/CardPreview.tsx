@@ -24,8 +24,8 @@ export function CardPreview({ card, deckSize, isMyTurn, onDiscard, canDiscard, i
       {card ? (
         <div className={`w-14 h-20 rounded-lg border-2 flex flex-col items-center justify-center font-bold
           ${isMyTurn ? "border-green-400 bg-slate-800 shadow-green-900 shadow-lg" : "border-slate-600 bg-slate-800"}`}>
-          <span className="text-slate-100 text-lg leading-none">{card.rank}</span>
-          <span className={`${SUIT_COLOR[card.suit] ?? "text-slate-100"} text-base leading-none`}>{card.suit}</span>
+          <span className="text-slate-100 text-2xl leading-none">{card.rank}</span>
+          <span className={`${SUIT_COLOR[card.suit] ?? "text-slate-100"} text-2xl leading-none`}>{card.suit}</span>
         </div>
       ) : (
         <div className="w-14 h-20 rounded-lg border-2 border-dashed border-slate-700 bg-slate-900" />

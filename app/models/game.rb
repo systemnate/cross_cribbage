@@ -205,11 +205,16 @@ class Game < ApplicationRecord
 
   def flush_remaining_to_crib!
     %w[player1 player2].each do |s|
-      remaining = send("#{s}_deck")
-      next if remaining.empty?
-      self.crib = crib + remaining
-      send("#{s}_deck=", [])
-      send("#{s}_crib_discards=", send("#{s}_crib_discards") + remaining.size)
+      needed = 2 - send("#{s}_crib_discards")
+      next if needed <= 0
+
+      deck  = send("#{s}_deck")
+      cards = deck.first(needed)
+      next if cards.empty?
+
+      self.crib = crib + cards
+      send("#{s}_deck=", deck.drop(needed))
+      send("#{s}_crib_discards=", send("#{s}_crib_discards") + cards.size)
     end
   end
 
