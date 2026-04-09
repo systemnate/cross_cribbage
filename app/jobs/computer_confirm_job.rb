@@ -8,8 +8,13 @@ class ComputerConfirmJob < ApplicationJob
     return unless game&.status == "scoring"
     return if game.player2_confirmed_scoring
 
-    game.confirm_scoring!("player2")
-    game.advance_round! if game.both_scoring_confirmed?
+    game.with_lock do
+      next unless game.status == "scoring"
+      next if game.player2_confirmed_scoring
+
+      game.confirm_scoring!("player2")
+      game.advance_round! if game.both_scoring_confirmed?
+    end
     GameChannel.broadcast_game_state(game)
   rescue Game::Error
     # Ignore — game state changed between enqueue and execution.
