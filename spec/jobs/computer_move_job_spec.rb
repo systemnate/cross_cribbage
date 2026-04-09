@@ -56,5 +56,11 @@ RSpec.describe ComputerMoveJob, type: :job do
     it "does nothing if game does not exist" do
       expect { described_class.new.perform(SecureRandom.uuid) }.not_to raise_error
     end
+
+    it "does nothing if game is not a vs-computer game" do
+      game.update!(vs_computer: false)
+      expect(game_channel_double).not_to receive(:broadcast_game_state)
+      described_class.new.perform(game.id)
+    end
   end
 end

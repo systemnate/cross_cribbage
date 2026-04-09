@@ -44,7 +44,9 @@ module Api
     def place_card
       game_action do
         @game.place_card!(current_slot, params[:row].to_i, params[:col].to_i)
-        AdvanceRoundJob.set(wait: 10.seconds).perform_later(@game.id) if @game.status == "scoring"
+        if @game.status == "scoring" && !@game.vs_computer?
+          AdvanceRoundJob.set(wait: 10.seconds).perform_later(@game.id)
+        end
       end
     end
 
