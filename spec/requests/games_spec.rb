@@ -10,6 +10,17 @@ RSpec.describe "Api::Games", type: :request do
       expect(response).to have_http_status(:created)
       expect(json).to include("game_id", "token")
     end
+
+    it "creates a vs-computer game that is immediately active" do
+      post "/api/games", params: { vs_computer: true }, as: :json
+      expect(response).to have_http_status(:created)
+      expect(json).to include("game_id", "token")
+
+      game = Game.find(json["game_id"])
+      expect(game.vs_computer).to be(true)
+      expect(game.status).to eq("active")
+      expect(game.player2_token).to be_present
+    end
   end
 
   describe "POST /api/games/:id/join" do
