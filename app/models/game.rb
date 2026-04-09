@@ -28,6 +28,7 @@ class Game < ApplicationRecord
     setup_round!
     self.status = "active"
     save!
+    maybe_enqueue_computer_jobs!
   end
 
   # ── Serialization ─────────────────────────────────────────────────────
@@ -52,6 +53,7 @@ class Game < ApplicationRecord
       player1_confirmed_scoring: player1_confirmed_scoring,
       player2_confirmed_scoring: player2_confirmed_scoring,
       crib_hand:     status == "scoring" ? crib : nil,
+      vs_computer:   vs_computer,
       my_slot:       slot,
       my_next_card:  slot ? send("#{slot}_deck").first : nil
     }
@@ -84,6 +86,7 @@ class Game < ApplicationRecord
     end
 
     save!
+    maybe_enqueue_computer_jobs!
   end
 
   def discard_to_crib!(slot)
@@ -98,6 +101,7 @@ class Game < ApplicationRecord
     flip_turn!
 
     save!
+    maybe_enqueue_computer_jobs!
   end
 
   def confirm_scoring!(slot)
@@ -119,6 +123,7 @@ class Game < ApplicationRecord
     setup_round!
     self.status = "active"
     save!
+    maybe_enqueue_computer_jobs!
   end
 
   private
@@ -211,6 +216,18 @@ class Game < ApplicationRecord
   def assert_active_turn!(slot)
     raise Error, "Game is not active" unless status == "active"
     raise Error, "Not your turn"      unless current_turn == slot
+  end
+
+  # NOTE: No delay for now — add `.set(wait: 2.seconds)` before `.perform_later` once
+  # the feature is verified working.
+  def maybe_enqueue_computer_jobs!
+    return unless vs_computer?
+
+    if status == "active" && current_turn == "player2"
+      ComputerMoveJob.perform_later(id)
+    elsif status == "scoring" && !player2_confirmed_scoring
+      ComputerConfirmJob.perform_later(id)
+    end
   end
 
   def enter_scoring_phase!
