@@ -6,6 +6,7 @@ interface BoardCellProps {
   isStarter: boolean;
   isClickable: boolean;
   onClick: () => void;
+  justPlayed?: boolean;
 }
 
 const SUIT_COLOR: Record<string, string> = {
@@ -15,8 +16,8 @@ const SUIT_COLOR: Record<string, string> = {
   "♣": "text-slate-200",
 };
 
-export function BoardCell({ card, isStarter, isClickable, onClick }: BoardCellProps) {
-  const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-xl font-bold select-none transition-all";
+export function BoardCell({ card, isStarter, isClickable, onClick, justPlayed }: BoardCellProps) {
+  const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-3xl font-bold select-none transition-all";
 
   if (!card) {
     const empty = isClickable
@@ -30,9 +31,9 @@ export function BoardCell({ card, isStarter, isClickable, onClick }: BoardCellPr
   const suitColor   = SUIT_COLOR[card.suit] ?? "text-slate-200";
 
   return (
-    <div className={`${base} ${borderClass} ${bgClass}`}>
+    <div className={`${base} ${borderClass} ${bgClass}${justPlayed ? " card-just-played" : ""}`}>
       <span className="text-slate-100 leading-none">{card.rank}</span>
-      <span className={`${suitColor} text-2xl leading-none`}>{card.suit}</span>
+      <span className={`${suitColor} text-4xl leading-none`}>{card.suit}</span>
     </div>
   );
 }

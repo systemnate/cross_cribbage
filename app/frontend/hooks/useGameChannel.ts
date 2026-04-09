@@ -1,12 +1,17 @@
 // app/frontend/hooks/useGameChannel.ts
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getConsumer } from "../lib/cable";
 import { getToken } from "../lib/storage";
 import type { GameChannelMessage, GameState } from "../types/game";
 
-export function useGameChannel(gameId: string | null): void {
+export function useGameChannel(
+  gameId: string | null,
+  onOpponentCardPlayed?: (row: number, col: number) => void
+): void {
   const queryClient = useQueryClient();
+  const callbackRef = useRef(onOpponentCardPlayed);
+  callbackRef.current = onOpponentCardPlayed;
 
   useEffect(() => {
     if (!gameId) return;
@@ -21,6 +26,17 @@ export function useGameChannel(gameId: string | null): void {
             // Broadcast arrived before the initial fetch completed; trigger a refetch.
             queryClient.invalidateQueries({ queryKey: ["game", gameId] });
             return;
+          }
+
+          // Detect cells that went from null → card while it was the opponent's turn
+          if (callbackRef.current && old.my_slot && old.current_turn && old.current_turn !== old.my_slot) {
+            for (let r = 0; r < data.board.length; r++) {
+              for (let c = 0; c < (data.board[r]?.length ?? 0); c++) {
+                if (!old.board[r]?.[c] && data.board[r]?.[c]) {
+                  callbackRef.current(r, c);
+                }
+              }
+            }
           }
 
           const roundChanged = data.round !== old.round;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGame } from "../hooks/useGame";
 import { useGameChannel } from "../hooks/useGameChannel";
@@ -17,7 +17,12 @@ export function GamePage() {
   const gameId         = urlId ?? getGameId() ?? null;
 
   const { data: game, isLoading, error } = useGame(gameId);
-  useGameChannel(gameId);
+  const [lastOpponentPlay, setLastOpponentPlay] = useState<{ row: number; col: number } | null>(null);
+  const handleOpponentCardPlayed = useCallback((row: number, col: number) => {
+    setLastOpponentPlay({ row, col });
+    setTimeout(() => setLastOpponentPlay(null), 2000);
+  }, []);
+  useGameChannel(gameId, handleOpponentCardPlayed);
   const action = useGameAction(gameId);
 
   if (isLoading) {
@@ -47,10 +52,30 @@ export function GamePage() {
 
   if (game.status === "finished") {
     const iWon = game.winner_slot === game.my_slot;
+    const confettiColors = ["bg-yellow-400", "bg-green-400", "bg-blue-400", "bg-purple-400", "bg-red-400", "bg-orange-400", "bg-pink-400"];
+    const confettiPieces = Array.from({ length: 70 }, (_, i) => ({
+      color: confettiColors[i % confettiColors.length],
+      left: `${(i * 37 + 11) % 100}%`,
+      delay: `${((i * 0.17) % 2.5).toFixed(2)}s`,
+      duration: `${(2.2 + (i * 0.09) % 1.8).toFixed(2)}s`,
+      wide: i % 3 !== 0,
+    }));
+
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4">
-        <h2 className={`text-4xl font-black ${iWon ? "text-yellow-400" : "text-slate-400"}`}>
-          {iWon ? "You win!" : "Opponent wins!"}
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+        {iWon && (
+          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+            {confettiPieces.map((p, i) => (
+              <div
+                key={i}
+                className={`absolute top-0 ${p.wide ? "w-2 h-3" : "w-3 h-3 rounded-sm"} ${p.color} confetti-piece`}
+                style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration }}
+              />
+            ))}
+          </div>
+        )}
+        <h2 className={`text-5xl font-black tracking-tight ${iWon ? "text-yellow-400" : "text-slate-400"}`}>
+          {iWon ? "You win!" : "Opponent wins."}
         </h2>
         <button onClick={() => navigate("/")} className="text-slate-400 underline text-sm">Play again</button>
       </div>
@@ -123,6 +148,7 @@ export function GamePage() {
               colScores={game.col_scores}
               isMyTurn={isInteractable && !mustDiscardFirst}
               onCellClick={handleCellClick}
+              lastOpponentPlay={lastOpponentPlay}
             />
           </div>
 
