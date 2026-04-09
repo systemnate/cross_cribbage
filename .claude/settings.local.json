@@ -7,7 +7,15 @@
       "Bash(bin/rails db:migrate:*)",
       "Bash(git commit:*)",
       "Bash(bundle exec:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git:*)",
+      "Read(//Users/natedalo/.config/superpowers/worktrees/cross_cribbage/feat-vs-computer/**)",
+      "Bash(bin/rspec --format progress)",
+      "Bash(grep -n \"crib_owner\\\\|player2_crib_discards\" spec/factories/*.rb)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(/Users/natedalo/Desktop/workspace/cross_cribbage/node_modules/.bin/tsc --noEmit)",
+      "Bash(./node_modules/.bin/tsc:*)"
     ]
   }
 }

@@ -10,6 +10,10 @@ class ComputerPlayer
   # Returns { action: :place, row: Integer, col: Integer }
   #      or { action: :discard }
   def decide
+    # Mirror game.rb's forced-discard rule: if deck is too small to place, must discard first.
+    remaining_crib = 2 - @game.player2_crib_discards
+    return { action: :discard } if @game.player2_deck.size <= remaining_crib
+
     next_card = @game.player2_deck.first
     return { action: :discard } unless next_card
 
