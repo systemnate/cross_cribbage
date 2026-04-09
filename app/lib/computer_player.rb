@@ -29,8 +29,10 @@ class ComputerPlayer
       end
     end
 
-    # Prefer discarding over a net-neutral/negative move if crib still has room.
-    if best_net_impact && best_net_impact <= 0 && @game.player2_crib_discards < 2
+    # Prefer discarding over a net-neutral/negative move if crib still has room
+    # and player2 owns the crib (discarding benefits the AI).
+    if best_net_impact && best_net_impact <= 0 &&
+       @game.player2_crib_discards < 2 && @game.crib_owner == "player2"
       return { action: :discard }
     end
 

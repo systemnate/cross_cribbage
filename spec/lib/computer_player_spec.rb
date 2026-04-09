@@ -6,8 +6,10 @@ RSpec.describe ComputerPlayer do
     { "rank" => rank, "suit" => suit, "id" => id }
   end
 
-  def empty_board
-    Array.new(5) { Array.new(5, nil) }
+  def board_with_starter(starter)
+    b = Array.new(5) { Array.new(5, nil) }
+    b[2][2] = starter
+    b
   end
 
   def nil_scores
@@ -18,14 +20,17 @@ RSpec.describe ComputerPlayer do
   # A lone "2" on any empty row/col scores 0 points. Net impact = 0 everywhere.
   # Since 0 <= 0 and crib has space → should discard.
   describe "#decide with all-zero net impact and crib space" do
+    let(:starter) { card("3", "♥", "c2") }
+
     let(:game) do
       create(:game,
         player2_deck:          [card("2", "♠", "c1")],
-        board:                 empty_board,
+        board:                 board_with_starter(starter),
         row_scores:            nil_scores,
         col_scores:            nil_scores,
-        starter_card:          card("3", "♥", "c2"),
-        player2_crib_discards: 0
+        starter_card:          starter,
+        player2_crib_discards: 0,
+        crib_owner:            "player2"
       )
     end
 
@@ -36,13 +41,15 @@ RSpec.describe ComputerPlayer do
 
   # --- Same scenario but crib is full (discards == 2) → must place
   describe "#decide with all-zero net impact but crib full" do
+    let(:starter) { card("3", "♥", "c2") }
+
     let(:game) do
       create(:game,
         player2_deck:          [card("2", "♠", "c1")],
-        board:                 empty_board,
+        board:                 board_with_starter(starter),
         row_scores:            nil_scores,
         col_scores:            nil_scores,
-        starter_card:          card("3", "♥", "c2"),
+        starter_card:          starter,
         player2_crib_discards: 2
       )
     end
@@ -61,8 +68,10 @@ RSpec.describe ComputerPlayer do
   # Net impact for row 0 cells = 6 - 0 = 6. For all other cells = 0 - 0 = 0.
   # Best cell should be the first empty cell in row 0 (col 2, since 0 and 1 are occupied).
   describe "#decide picks the cell with highest net impact" do
+    let(:starter) { card("A", "♣", "c4") }
+
     let(:board) do
-      b = empty_board
+      b = board_with_starter(starter)
       b[0][0] = card("5", "♠", "c1")
       b[0][1] = card("10", "♥", "c2")
       b
@@ -74,7 +83,7 @@ RSpec.describe ComputerPlayer do
         board:                 board,
         row_scores:            nil_scores,
         col_scores:            nil_scores,
-        starter_card:          card("A", "♣", "c4"),
+        starter_card:          starter,
         player2_crib_discards: 2   # force placement
       )
     end
