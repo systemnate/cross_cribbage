@@ -22,8 +22,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 }
 
 export const api = {
-  createGame: (): Promise<CreateGameResponse> =>
-    request("POST", "/games"),
+  createGame: (options?: { vs_computer?: boolean }): Promise<CreateGameResponse> =>
+    request("POST", "/games", options),
 
   joinGame: (id: string): Promise<CreateGameResponse> =>
     request("POST", `/games/${id}/join`),

@@ -36,6 +36,7 @@ export interface GameState {
   player1_confirmed_scoring: boolean;
   player2_confirmed_scoring: boolean;
   crib_hand: Card[] | null;
+  vs_computer: boolean;
   // Private — only included in HTTP responses, never in broadcasts
   my_slot: "player1" | "player2" | null;
   my_next_card: Card | null;
