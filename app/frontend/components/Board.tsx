@@ -10,6 +10,7 @@ interface BoardProps {
   colScores: (number | null)[];
   isMyTurn: boolean;
   onCellClick: (row: number, col: number) => void;
+  lastOpponentPlay?: { row: number; col: number } | null;
 }
 
 function transpose<T>(matrix: T[][]): T[][] {
@@ -18,10 +19,17 @@ function transpose<T>(matrix: T[][]): T[][] {
 }
 
 export function Board({
-  board, mySlot, starter, rowScores, colScores, isMyTurn, onCellClick
+  board, mySlot, starter, rowScores, colScores, isMyTurn, onCellClick, lastOpponentPlay
 }: BoardProps) {
   // Player 2 sees the board transposed (their scoring hands become columns)
   const displayBoard = mySlot === "player2" ? transpose(board) : board;
+
+  // Convert server coords → display coords for player2
+  const displayLastPlay = lastOpponentPlay
+    ? mySlot === "player2"
+      ? { row: lastOpponentPlay.col, col: lastOpponentPlay.row }
+      : lastOpponentPlay
+    : null;
 
   // Player 1 scores columns (col_scores); Player 2 scores rows from server = col_scores from display POV
   const myHandScores  = mySlot === "player1" ? colScores : rowScores;
@@ -58,6 +66,7 @@ export function Board({
               isStarter={!!(cell && starter && cell.id === starter.id)}
               isClickable={isMyTurn && !cell}
               onClick={() => handleClick(rIdx, cIdx)}
+              justPlayed={!!(displayLastPlay && displayLastPlay.row === rIdx && displayLastPlay.col === cIdx)}
             />
           ))}
           {/* Opponent's row score (right of each row) */}
