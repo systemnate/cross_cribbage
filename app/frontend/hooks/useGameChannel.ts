@@ -17,7 +17,11 @@ export function useGameChannel(gameId: string | null): void {
       {
         received(data: GameChannelMessage) {
           const old = queryClient.getQueryData<GameState>(["game", gameId]);
-          if (!old) return;
+          if (!old) {
+            // Broadcast arrived before the initial fetch completed; trigger a refetch.
+            queryClient.invalidateQueries({ queryKey: ["game", gameId] });
+            return;
+          }
 
           const roundChanged = data.round !== old.round;
 

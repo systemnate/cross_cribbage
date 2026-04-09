@@ -218,15 +218,15 @@ class Game < ApplicationRecord
     raise Error, "Not your turn"      unless current_turn == slot
   end
 
-  # NOTE: No delay for now — add `.set(wait: 2.seconds)` before `.perform_later` once
-  # the feature is verified working.
+  # Delay gives the HTTP response time to reach the client before the broadcast fires,
+  # preventing the onSuccess handler from overwriting the computer's already-broadcast move.
   def maybe_enqueue_computer_jobs!
     return unless vs_computer?
 
     if status == "active" && current_turn == "player2"
-      ComputerMoveJob.perform_later(id)
+      ComputerMoveJob.set(wait: 1.second).perform_later(id)
     elsif status == "scoring" && !player2_confirmed_scoring
-      ComputerConfirmJob.perform_later(id)
+      ComputerConfirmJob.set(wait: 1.second).perform_later(id)
     end
   end
 
