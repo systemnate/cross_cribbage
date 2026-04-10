@@ -5,7 +5,7 @@ module ApplicationCable
     identified_by :player_token
 
     def connect
-      self.player_token = request.params[:token] || reject_unauthorized_connection
+      self.player_token = cookies[:player_token] || reject_unauthorized_connection
     end
   end
 end
