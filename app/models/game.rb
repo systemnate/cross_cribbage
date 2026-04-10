@@ -75,6 +75,10 @@ class Game < ApplicationRecord
     current_board[row][col] = card
     self.board = current_board
 
+    # Keep scores current during active play: the frontend displays row_scores/col_scores
+    # on the board and peg track after every card placement (Board.tsx, GamePage.tsx).
+    # enter_scoring_phase! will rescore all 10 hands again when the board fills, but these
+    # two calls are not redundant — they drive the live score display between placements.
     rescore_row!(row)
     rescore_col!(col)
 
