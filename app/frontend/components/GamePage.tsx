@@ -97,7 +97,7 @@ export function GamePage() {
   const isInteractable  = isMyTurn && game.status === "active";
   const mustDiscardFirst = isInteractable && myCribDiscards < 2 && myDeckSize <= (2 - myCribDiscards);
 
-  const sum = (scores: (number | null)[]) => scores.reduce((acc, s) => acc + (s ?? 0), 0);
+  const sum = (scores: (number | null)[]) => scores.reduce<number>((acc, s) => acc + (s ?? 0), 0);
   const myBoardScore  = sum(mySlot === "player1" ? game.col_scores : game.row_scores);
   const oppBoardScore = sum(mySlot === "player1" ? game.row_scores : game.col_scores);
 

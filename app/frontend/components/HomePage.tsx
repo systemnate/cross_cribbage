@@ -78,7 +78,7 @@ export function HomePage() {
       <div className="flex flex-col gap-4 w-full max-w-sm">
         <div className="flex gap-2">
           <button
-            onClick={() => createGame.mutate()}
+            onClick={() => createGame.mutate({})}
             disabled={anyPending}
             className="flex-1 rounded-lg bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-900 font-bold py-3 text-sm transition-colors"
           >
