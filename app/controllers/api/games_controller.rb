@@ -4,22 +4,36 @@
 module Api
   class GamesController < ApiController
     GAME_ACTIONS = %i[show place_card discard_to_crib confirm_round].freeze
+    WAITING_GAME_CAP = 50
 
     before_action :set_game,          only: [:join] + GAME_ACTIONS
     before_action :authorize_player!, only: GAME_ACTIONS
 
     # POST /api/games
     def create
+      if Game.where(status: "waiting").count >= WAITING_GAME_CAP
+        return render json: { error: "Server is busy, please try again later." },
+                      status: :service_unavailable
+      end
+
+      if @current_token.present? &&
+         Game.exists?(player1_token: @current_token, status: "waiting")
+        return render json: { error: "You already have a game waiting for a player." },
+                      status: :conflict
+      end
+
       token = Game.generate_token
       game  = Game.create!(player1_token: token)
 
       if params[:vs_computer]
         game.update!(player2_token: Game.generate_token, vs_computer: true)
         game.deal!
+        DestroyGameJob.set(wait: 2.hours).perform_later(game.id)
+      else
+        DestroyGameJob.set(wait: 30.minutes).perform_later(game.id)
       end
 
       set_player_cookie(token)
-      DestroyGameJob.set(wait: 2.hours).perform_later(game.id)
       render json: { game_id: game.id }, status: :created
     end
 
@@ -34,6 +48,7 @@ module Api
         set_player_cookie(token)
         @game.update!(player2_token: token)
         @game.deal!
+        DestroyGameJob.set(wait: 2.hours).perform_later(@game.id)
         GameChannel.broadcast_game_state(@game)
         render json: { game_id: @game.id }, status: :ok
       end

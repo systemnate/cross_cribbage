@@ -6,6 +6,7 @@ class DestroyGameJob < ApplicationJob
   def perform(game_id)
     game = Game.find_by(id: game_id)
     return unless game
+    return if %w[active scoring].include?(game.status)
 
     game.destroy!
   end
