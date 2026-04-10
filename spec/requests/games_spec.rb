@@ -175,4 +175,44 @@ RSpec.describe "Api::Games", type: :request do
       }.not_to have_enqueued_job(AdvanceRoundJob)
     end
   end
+
+  describe "DELETE /api/games/:id" do
+    let(:game) { create(:game) }
+
+    it "destroys a waiting game when called by the creator" do
+      cookies[:player_token] = game.player1_token
+      delete "/api/games/#{game.id}"
+      expect(response).to have_http_status(:ok)
+      expect(json).to eq("ok" => true)
+      expect(Game.exists?(game.id)).to be false
+    end
+
+    it "returns 403 when called by someone other than the creator" do
+      cookies[:player_token] = "not-the-creator-token"
+      delete "/api/games/#{game.id}"
+      expect(response).to have_http_status(:forbidden)
+      expect(Game.exists?(game.id)).to be true
+    end
+
+    it "returns 422 when the game is not in waiting status" do
+      active_game = create(:game, :active)
+      active_game.deal!
+      active_game.reload
+      cookies[:player_token] = active_game.player1_token
+      delete "/api/games/#{active_game.id}"
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(Game.exists?(active_game.id)).to be true
+    end
+
+    it "returns 403 without a cookie" do
+      delete "/api/games/#{game.id}"
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 404 for a non-existent game" do
+      cookies[:player_token] = game.player1_token
+      delete "/api/games/#{SecureRandom.uuid}"
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end
