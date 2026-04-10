@@ -10,6 +10,7 @@ gem "solid_queue"
 gem "solid_cache"
 gem "vite_rails", "~> 3.0"
 gem "rack-cors"
+gem "rack-attack"
 gem "bootsnap", require: false
 gem "thruster", require: false
 gem "tzinfo-data", platforms: %i[windows jruby]
