@@ -6,6 +6,7 @@ default: &default
 
 development:
   <<: *default
+  url: <%= ENV.fetch("DATABASE_URL", nil) %>
   database: cross_cribbage_development
 
 test:
