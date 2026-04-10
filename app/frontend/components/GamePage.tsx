@@ -104,15 +104,41 @@ export function GamePage() {
   const { id: gid } = game;
 
   function handleCellClick(row: number, col: number) {
-    action.mutate(() => api.placeCard(gid, row, col));
+    action.mutate({
+      action: () => api.placeCard(gid, row, col),
+      optimistic: (old) => {
+        if (!old.my_next_card) return {};
+        const board = old.board.map(r => [...r]);
+        board[row][col] = old.my_next_card;
+        const mySlot = old.my_slot!;
+        const oppSlot = mySlot === "player1" ? "player2" : "player1";
+        return {
+          board,
+          my_next_card: null,
+          deck_size: { ...old.deck_size, [mySlot]: old.deck_size[mySlot] - 1 },
+          current_turn: oppSlot,
+        };
+      },
+    });
   }
 
   function handleDiscard() {
-    action.mutate(() => api.discardToCrib(gid));
+    action.mutate({
+      action: () => api.discardToCrib(gid),
+      optimistic: (old) => {
+        if (!old.my_next_card) return {};
+        const mySlot = old.my_slot!;
+        return {
+          my_next_card: null,
+          deck_size: { ...old.deck_size, [mySlot]: old.deck_size[mySlot] - 1 },
+          crib_size: { ...old.crib_size, [mySlot]: old.crib_size[mySlot] + 1 },
+        };
+      },
+    });
   }
 
   function handleConfirmRound() {
-    action.mutate(() => api.confirmRound(gid));
+    action.mutate({ action: () => api.confirmRound(gid) });
   }
 
   return (
