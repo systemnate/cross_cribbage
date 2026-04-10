@@ -25,6 +25,7 @@ services:
     env_file: .env
     environment:
       RAILS_ENV: development
+      VITE_RUBY_HOST: vite
     depends_on:
       db:
         condition: service_healthy

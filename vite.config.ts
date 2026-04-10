@@ -6,4 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [RubyPlugin(), react(), tailwindcss()],
+  server: {
+    allowedHosts: ['vite', 'localhost'],
+  },
 })
