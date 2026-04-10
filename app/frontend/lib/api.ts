@@ -37,4 +37,7 @@ export const api = {
 
   confirmRound: (id: string): Promise<GameState> =>
     request("POST", `/games/${id}/confirm_round`),
+
+  deleteGame: (id: string): Promise<{ ok: boolean }> =>
+    request("DELETE", `/games/${id}`),
 };
