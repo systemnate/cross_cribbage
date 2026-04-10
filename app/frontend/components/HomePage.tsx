@@ -11,17 +11,17 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [createdGameId, setCreatedGameId] = useState<string | null>(null);
   const [games, setGames] = useState(() => getGames());
-
-  React.useEffect(() => {
-    setGames(getGames());
-  }, []);
+  const [endingGameId, setEndingGameId] = useState<string | null>(null);
 
   const endGame = useMutation({
     mutationFn: api.deleteGame,
+    onMutate: (gameId) => {
+      setEndingGameId(gameId);
+      setError(null);
+    },
     onSuccess: (_data, gameId) => {
       removeGame(gameId);
       setGames(getGames());
-      setError(null);
     },
     onError: (e: Error, gameId) => {
       if (e.message === "Game not found") {
@@ -31,6 +31,7 @@ export function HomePage() {
         setError(e.message);
       }
     },
+    onSettled: () => setEndingGameId(null),
   });
 
   const createGame = useMutation({
@@ -174,10 +175,10 @@ export function HomePage() {
                   </button>
                   <button
                     onClick={() => endGame.mutate(g.gameId)}
-                    disabled={endGame.isPending}
+                    disabled={endingGameId === g.gameId}
                     className="rounded bg-red-900 hover:bg-red-800 text-red-200 text-xs font-semibold px-3 py-1 disabled:opacity-50"
                   >
-                    End
+                    {endingGameId === g.gameId ? "Ending…" : "End"}
                   </button>
                 </div>
               </div>
