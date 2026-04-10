@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-import { setGameId, clearSession } from "../lib/storage";
+import { setGameId, clearSession, getGames, addGame, removeGame } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
 
 export function HomePage() {
@@ -10,6 +10,28 @@ export function HomePage() {
   const [joinId, setJoinId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [createdGameId, setCreatedGameId] = useState<string | null>(null);
+  const [games, setGames] = useState(() => getGames());
+
+  React.useEffect(() => {
+    setGames(getGames());
+  }, []);
+
+  const endGame = useMutation({
+    mutationFn: api.deleteGame,
+    onSuccess: (_data, gameId) => {
+      removeGame(gameId);
+      setGames(getGames());
+      setError(null);
+    },
+    onError: (e: Error, gameId) => {
+      if (e.message === "Game not found") {
+        removeGame(gameId);
+        setGames(getGames());
+      } else {
+        setError(e.message);
+      }
+    },
+  });
 
   const createGame = useMutation({
     mutationFn: api.createGame,
@@ -19,6 +41,7 @@ export function HomePage() {
       resetConsumer();
       setGameId(game_id);
       setCreatedGameId(game_id);
+      addGame(game_id, false);
     },
     onError: (e: Error) => setError(e.message),
   });
@@ -30,6 +53,7 @@ export function HomePage() {
       clearSession();
       resetConsumer();
       setGameId(game_id);
+      addGame(game_id, true);
       navigate(`/game/${game_id}`);
     },
     onError: (e: Error) => setError(e.message),
@@ -42,6 +66,7 @@ export function HomePage() {
       clearSession();
       resetConsumer();
       setGameId(game_id);
+      addGame(game_id, false);
       navigate(`/game/${game_id}`);
     },
     onError: (e: Error) => setError(e.message),
@@ -115,6 +140,51 @@ export function HomePage() {
           </button>
         </div>
       </div>
+
+      {games.length > 0 && (
+        <div className="w-full max-w-sm mt-2">
+          <div className="flex items-center gap-2 text-slate-600 text-xs mb-3">
+            <hr className="flex-1 border-slate-700" />
+            <span>Your Games</span>
+            <hr className="flex-1 border-slate-700" />
+          </div>
+          <div className="flex flex-col gap-2">
+            {games.map((g) => (
+              <div
+                key={g.gameId}
+                className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
+              >
+                <div className="flex flex-col">
+                  <span className="font-mono text-yellow-300 text-xs">
+                    {g.gameId.slice(0, 8)}
+                  </span>
+                  <span className="text-slate-500 text-xs">
+                    {g.vsComputer ? "vs Computer" : "vs Human"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setGameId(g.gameId);
+                      navigate(`/game/${g.gameId}`);
+                    }}
+                    className="rounded bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-semibold px-3 py-1"
+                  >
+                    Rejoin
+                  </button>
+                  <button
+                    onClick={() => endGame.mutate(g.gameId)}
+                    disabled={endGame.isPending}
+                    className="rounded bg-red-900 hover:bg-red-800 text-red-200 text-xs font-semibold px-3 py-1 disabled:opacity-50"
+                  >
+                    End
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
