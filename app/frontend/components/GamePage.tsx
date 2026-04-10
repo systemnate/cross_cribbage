@@ -112,11 +112,12 @@ export function GamePage() {
         board[row][col] = old.my_next_card;
         const mySlot = old.my_slot!;
         const oppSlot = mySlot === "player1" ? "player2" : "player1";
+        const boardWillFull = old.board.flat().filter(Boolean).length === 24;
         return {
           board,
           my_next_card: null,
           deck_size: { ...old.deck_size, [mySlot]: old.deck_size[mySlot] - 1 },
-          current_turn: oppSlot,
+          ...(boardWillFull ? {} : { current_turn: oppSlot }),
         };
       },
     });
@@ -128,10 +129,12 @@ export function GamePage() {
       optimistic: (old) => {
         if (!old.my_next_card) return {};
         const mySlot = old.my_slot!;
+        const oppSlot = mySlot === "player1" ? "player2" : "player1";
         return {
           my_next_card: null,
           deck_size: { ...old.deck_size, [mySlot]: old.deck_size[mySlot] - 1 },
           crib_size: { ...old.crib_size, [mySlot]: old.crib_size[mySlot] + 1 },
+          current_turn: oppSlot,
         };
       },
     });
