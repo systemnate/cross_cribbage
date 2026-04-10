@@ -34,7 +34,10 @@
       "Bash(fly apps:*)",
       "Bash(find:*)",
       "Bash(xargs basename:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(ls /Users/natedalo/Desktop/workspace/cross_cribbage/config/*.key)"
     ]
   }
 }
