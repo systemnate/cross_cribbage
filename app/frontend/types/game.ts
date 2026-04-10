@@ -51,5 +51,4 @@ export type GameChannelMessage = Omit<GameState, "id" | "my_slot" | "my_next_car
 
 export interface CreateGameResponse {
   game_id: string;
-  token: string;
 }
