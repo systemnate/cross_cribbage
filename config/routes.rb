@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   mount ActionCable.server => "/cable"
 
   namespace :api do
-    resources :games, only: %i[show create] do
+    resources :games, only: %i[show create destroy] do
       member do
         post :join
         post :place_card

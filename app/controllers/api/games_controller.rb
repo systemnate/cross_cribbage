@@ -6,7 +6,7 @@ module Api
     GAME_ACTIONS = %i[show place_card discard_to_crib confirm_round].freeze
     WAITING_GAME_CAP = 50
 
-    before_action :set_game,          only: [:join] + GAME_ACTIONS
+    before_action :set_game,          only: [:join, :destroy] + GAME_ACTIONS
     before_action :authorize_player!, only: GAME_ACTIONS
 
     # POST /api/games
@@ -85,6 +85,19 @@ module Api
         end
         @game.reload
       end
+    end
+
+    # DELETE /api/games/:id
+    def destroy
+      unless @game.player1_token == @current_token
+        return render_error("Only the game creator can end this game", status: :forbidden)
+      end
+      unless @game.status == "waiting"
+        return render_error("Can only end a game that is waiting for players")
+      end
+
+      @game.destroy!
+      render json: { ok: true }
     end
 
     private
