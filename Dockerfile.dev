@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+# Development image — not for production (see Dockerfile)
+
+ARG RUBY_VERSION=3.3.5
+FROM docker.io/library/ruby:$RUBY_VERSION-slim
+
+WORKDIR /rails
+
+# System dependencies needed to build gems and native extensions
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+      build-essential curl git libpq-dev libyaml-dev pkg-config \
+      node-gyp python-is-python3 && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Install Node.js (same version as production Dockerfile)
+ARG NODE_VERSION=22.14.0
+ENV PATH=/usr/local/node/bin:$PATH
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    rm -rf /tmp/node-build-master
+
+ENV RAILS_ENV=development \
+    BUNDLE_PATH="/usr/local/bundle"
+
+# Install all gems (including dev/test groups)
+COPY vendor/ ./vendor/
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+# Install node modules
+# node_modules dir is created here so the named volume can seed from it
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy source — will be overridden by the bind mount volume at runtime,
+# but copying here ensures the image is self-contained if run without compose.
+COPY . .
