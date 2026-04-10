@@ -18,21 +18,25 @@ module Api
         game.deal!
       end
 
+      set_player_cookie(token)
       DestroyGameJob.set(wait: 2.hours).perform_later(game.id)
-      render json: { game_id: game.id, token: token }, status: :created
+      render json: { game_id: game.id }, status: :created
     end
 
     # POST /api/games/:id/join
     def join
-      return render_error("Game is not joinable")         unless @game.status == "waiting"
-      return render_error("Game already has two players") if @game.player2_token.present?
-      return render_error("Cannot join your own game", status: :forbidden) if @current_token == @game.player1_token
+      @game.with_lock do
+        return render_error("Game is not joinable")         unless @game.status == "waiting"
+        return render_error("Game already has two players") if @game.player2_token.present?
+        return render_error("Cannot join your own game", status: :forbidden) if @current_token == @game.player1_token
 
-      token = Game.generate_token
-      @game.update!(player2_token: token)
-      @game.deal!
-      GameChannel.broadcast_game_state(@game)
-      render json: { game_id: @game.id, token: token }, status: :ok
+        token = Game.generate_token
+        set_player_cookie(token)
+        @game.update!(player2_token: token)
+        @game.deal!
+        GameChannel.broadcast_game_state(@game)
+        render json: { game_id: @game.id }, status: :ok
+      end
     end
 
     # GET /api/games/:id
@@ -42,8 +46,10 @@ module Api
 
     # POST /api/games/:id/place_card  { row: int, col: int }
     def place_card
+      row = params.require(:row).to_i
+      col = params.require(:col).to_i
       game_action do
-        @game.place_card!(current_slot, params[:row].to_i, params[:col].to_i)
+        @game.place_card!(current_slot, row, col)
         if @game.status == "scoring" && !@game.vs_computer?
           AdvanceRoundJob.set(wait: 10.seconds).perform_later(@game.id)
         end
