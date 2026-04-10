@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import { BoardCell } from "./BoardCell";
 import type { Card } from "../types/game";
 
@@ -22,7 +22,10 @@ export function Board({
   board, mySlot, starter, rowScores, colScores, isMyTurn, onCellClick, lastOpponentPlay
 }: BoardProps) {
   // Player 2 sees the board transposed (their scoring hands become columns)
-  const displayBoard = mySlot === "player2" ? transpose(board) : board;
+  const displayBoard = useMemo(
+    () => (mySlot === "player2" ? transpose(board) : board),
+    [board, mySlot]
+  );
 
   // Convert server coords → display coords for player2
   const displayLastPlay = lastOpponentPlay
@@ -35,13 +38,13 @@ export function Board({
   const myHandScores  = mySlot === "player1" ? colScores : rowScores;
   const oppHandScores = mySlot === "player1" ? rowScores : colScores;
 
-  function handleClick(displayRow: number, displayCol: number) {
+  const handleClick = useCallback((displayRow: number, displayCol: number) => {
     if (!isMyTurn) return;
     // Map display coords back to server coords
     const [serverRow, serverCol] =
       mySlot === "player2" ? [displayCol, displayRow] : [displayRow, displayCol];
     onCellClick(serverRow, serverCol);
-  }
+  }, [isMyTurn, mySlot, onCellClick]);
 
   return (
     <div className="flex flex-col gap-1 w-full h-full md:h-auto">

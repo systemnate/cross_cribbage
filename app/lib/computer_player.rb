@@ -21,11 +21,16 @@ class ComputerPlayer
     best_net_impact = nil
     best_potential  = nil
 
+    # Precompute each row's and column's current cards once so simulate_net_impact
+    # doesn't rebuild them from scratch for every candidate cell.
+    row_base = Array.new(5) { |r| @game.board[r].compact }
+    col_base = Array.new(5) { |c| @game.board.map { |r| r[c] }.compact }
+
     5.times do |row|
       5.times do |col|
         next if @game.board[row][col]  # occupied
 
-        net_impact = simulate_net_impact(row, col, next_card)
+        net_impact = simulate_net_impact(row, col, next_card, row_base, col_base)
         potential  = early_game_potential(row, col, next_card)
 
         if best_net_impact.nil? ||
@@ -82,12 +87,17 @@ class ComputerPlayer
     rank.to_i
   end
 
-  def simulate_net_impact(row, col, card)
+  def simulate_net_impact(row, col, card, row_base = nil, col_base = nil)
     current_row_score = @game.row_scores[row].to_i
     current_col_score = @game.col_scores[col].to_i
 
-    row_cards = @game.board[row].each_with_index.map { |c, i| i == col ? card : c }.compact
-    col_cards = @game.board.each_with_index.map { |r, i| i == row ? card : r[col] }.compact
+    if row_base && col_base
+      row_cards = row_base[row] + [card]
+      col_cards = col_base[col] + [card]
+    else
+      row_cards = @game.board[row].each_with_index.map { |c, i| i == col ? card : c }.compact
+      col_cards = @game.board.each_with_index.map { |r, i| i == row ? card : r[col] }.compact
+    end
 
     new_row_score = CribbageHand.new(row_cards, starter: @game.starter_card, is_center: row == 2).score
     new_col_score = CribbageHand.new(col_cards, starter: @game.starter_card, is_center: col == 2).score

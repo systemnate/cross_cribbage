@@ -16,7 +16,7 @@ const SUIT_COLOR: Record<string, string> = {
   "♣": "text-slate-200",
 };
 
-export function BoardCell({ card, isStarter, isClickable, onClick, justPlayed }: BoardCellProps) {
+export const BoardCell = React.memo(function BoardCell({ card, isStarter, isClickable, onClick, justPlayed }: BoardCellProps) {
   const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-3xl font-bold select-none transition-all";
 
   if (!card) {
@@ -36,4 +36,4 @@ export function BoardCell({ card, isStarter, isClickable, onClick, justPlayed }:
       <span className={`${suitColor} text-4xl leading-none`}>{card.suit}</span>
     </div>
   );
-}
+});

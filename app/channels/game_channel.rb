@@ -32,6 +32,8 @@ class GameChannel < ApplicationCable::Channel
                         player2: game.player2_crib_discards },
         deck_size:    { player1: game.player1_deck.size,
                         player2: game.player2_deck.size },
+        player1_next_card: game.player1_deck.first,
+        player2_next_card: game.player2_deck.first,
         player1_peg:  game.player1_peg,
         player2_peg:  game.player2_peg,
         winner_slot:  game.winner_slot,
