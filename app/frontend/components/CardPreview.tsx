@@ -23,12 +23,13 @@ export function CardPreview({ card, deckSize, isMyTurn, onDiscard, canDiscard, i
   const [isFlipping, setIsFlipping] = useState(false);
 
   useEffect(() => {
-    if (wasLoadingRef.current && !isLoading && card) {
+    const wasLoading = wasLoadingRef.current;
+    wasLoadingRef.current = isLoading;
+    if (wasLoading && !isLoading && card) {
       setIsFlipping(true);
       const t = setTimeout(() => setIsFlipping(false), 250);
       return () => clearTimeout(t);
     }
-    wasLoadingRef.current = isLoading;
   }, [isLoading, card]);
 
   let cardEl: React.ReactNode;
