@@ -89,14 +89,20 @@ module Api
 
     # DELETE /api/games/:id
     def destroy
+      unless @current_token.present?
+        return render_error("Unauthorized", status: :unauthorized)
+      end
       unless @game.player1_token == @current_token
         return render_error("Only the game creator can end this game", status: :forbidden)
       end
-      unless @game.status == "waiting"
-        return render_error("Can only end a game that is waiting for players")
-      end
 
-      @game.destroy!
+      @game.with_lock do
+        unless @game.status == "waiting"
+          return render_error("Can only end a game that is waiting for players", status: :unprocessable_entity)
+        end
+
+        @game.destroy!
+      end
       render json: { ok: true }
     end
 

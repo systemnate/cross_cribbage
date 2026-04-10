@@ -204,9 +204,9 @@ RSpec.describe "Api::Games", type: :request do
       expect(Game.exists?(active_game.id)).to be true
     end
 
-    it "returns 403 without a cookie" do
+    it "returns 401 without a cookie" do
       delete "/api/games/#{game.id}"
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "returns 404 for a non-existent game" do
