@@ -20,7 +20,18 @@
       "Bash(bin/rails solid_queue:install:migrations)",
       "Bash(bin/rails solid_cache:install:migrations)",
       "Bash(bin/rails solid_queue:install:*)",
-      "Bash(bin/rails solid_cache:install:*)"
+      "Bash(bin/rails solid_cache:install:*)",
+      "Bash(fly logs:*)",
+      "Bash(fly postgres:*)",
+      "Bash(fly status:*)",
+      "Bash(fly machine:*)",
+      "Bash(fly deploy:*)",
+      "Bash(fly secrets:*)",
+      "Bash(curl:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('config',{}\\).get\\('services',[]\\), indent=2\\)\\)\")",
+      "Bash(fly machines:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); svcs=d.get\\('config',{}\\).get\\('services',[]\\); [print\\(json.dumps\\({k:s.get\\(k\\) for k in ['protocol','autostop','ports']}, indent=2\\)\\) for s in svcs]\")",
+      "Bash(fly apps:*)"
     ]
   }
 }
