@@ -1,14 +1,12 @@
 // app/frontend/lib/api.ts
-import { getToken } from "./storage";
 import type { GameState, CreateGameResponse } from "../types/game";
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const token = getToken();
   const res = await fetch(`/api${path}`, {
     method,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { "X-Player-Token": token } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });

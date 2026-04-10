@@ -2,7 +2,6 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getConsumer } from "../lib/cable";
-import { getToken } from "../lib/storage";
 import type { GameChannelMessage, GameState } from "../types/game";
 
 export function useGameChannel(
@@ -18,7 +17,7 @@ export function useGameChannel(
 
     const consumer = getConsumer();
     const subscription = consumer.subscriptions.create(
-      { channel: "GameChannel", game_id: gameId, token: getToken() },
+      { channel: "GameChannel", game_id: gameId },
       {
         received(data: GameChannelMessage) {
           const old = queryClient.getQueryData<GameState>(["game", gameId]);

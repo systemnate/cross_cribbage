@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-import { setToken, setGameId, clearSession } from "../lib/storage";
+import { setGameId, clearSession } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
 
 export function HomePage() {
@@ -14,10 +14,9 @@ export function HomePage() {
   const createGame = useMutation({
     mutationFn: api.createGame,
     onMutate: () => setError(null),
-    onSuccess: ({ game_id, token }) => {
+    onSuccess: ({ game_id }) => {
       clearSession();
       resetConsumer();
-      setToken(token);
       setGameId(game_id);
       setCreatedGameId(game_id);
     },
@@ -27,10 +26,9 @@ export function HomePage() {
   const playComputer = useMutation({
     mutationFn: () => api.createGame({ vs_computer: true }),
     onMutate: () => setError(null),
-    onSuccess: ({ game_id, token }) => {
+    onSuccess: ({ game_id }) => {
       clearSession();
       resetConsumer();
-      setToken(token);
       setGameId(game_id);
       navigate(`/game/${game_id}`);
     },
@@ -40,10 +38,9 @@ export function HomePage() {
   const joinGame = useMutation({
     mutationFn: () => api.joinGame(joinId.trim()),
     onMutate: () => setError(null),
-    onSuccess: ({ game_id, token }) => {
+    onSuccess: ({ game_id }) => {
       clearSession();
       resetConsumer();
-      setToken(token);
       setGameId(game_id);
       navigate(`/game/${game_id}`);
     },
