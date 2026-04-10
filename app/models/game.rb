@@ -233,7 +233,7 @@ class Game < ApplicationRecord
     return unless vs_computer?
 
     if status == "active" && current_turn == "player2"
-      ComputerMoveJob.set(wait: 1.7.seconds).perform_later(id)
+      ComputerMoveJob.set(wait: 0.7.seconds).perform_later(id)
     elsif status == "scoring" && !player2_confirmed_scoring
       ComputerConfirmJob.set(wait: 1.second).perform_later(id)
     end
