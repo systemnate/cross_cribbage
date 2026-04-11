@@ -51,6 +51,9 @@ export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: Sc
     ? game.player2_confirmed_scoring
     : game.player1_confirmed_scoring;
 
+  const myPeg  = mySlot === "player1" ? game.player1_peg : game.player2_peg;
+  const oppPeg = mySlot === "player1" ? game.player2_peg : game.player1_peg;
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full">
@@ -113,9 +116,32 @@ export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: Sc
         )}
 
         <div className="text-center">
-          {myTotal > oppTotal && <p className="text-green-400 font-bold mb-2">You lead by {myTotal - oppTotal} pts</p>}
-          {oppTotal > myTotal && <p className="text-red-400 font-bold mb-2">Opponent leads by {oppTotal - myTotal} pts</p>}
-          {myTotal === oppTotal && <p className="text-slate-400 mb-2">Tied this round</p>}
+          {myTotal > oppTotal && <p className="text-green-400 font-bold mb-2">You won the round by {myTotal - oppTotal} pts</p>}
+          {oppTotal > myTotal && <p className="text-red-400 font-bold mb-2">Opponent won the round by {oppTotal - myTotal} pts</p>}
+          {myTotal === oppTotal && <p className="text-slate-400 mb-2">Round tied</p>}
+
+          <div className="mb-3 rounded-lg border-2 border-slate-700 bg-black shadow-inner">
+            <div className="px-3 py-1 border-b border-slate-800 text-[10px] font-bold tracking-[0.2em] text-amber-500/80 text-center">
+              GAME SCORE
+            </div>
+            <div className="grid grid-cols-2 divide-x divide-slate-800">
+              <div className="px-3 py-2 flex flex-col items-center">
+                <span className="text-[10px] font-bold tracking-widest text-slate-400">YOU</span>
+                <span className="font-mono text-3xl font-black text-amber-400 tabular-nums [text-shadow:0_0_8px_rgba(251,191,36,0.6)]">
+                  {String(myPeg).padStart(2, "0")}
+                </span>
+              </div>
+              <div className="px-3 py-2 flex flex-col items-center">
+                <span className="text-[10px] font-bold tracking-widest text-slate-400">OPP</span>
+                <span className="font-mono text-3xl font-black text-amber-400 tabular-nums [text-shadow:0_0_8px_rgba(251,191,36,0.6)]">
+                  {String(oppPeg).padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+            <div className="px-3 py-0.5 border-t border-slate-800 text-[9px] tracking-widest text-slate-500 text-center">
+              FIRST TO 31
+            </div>
+          </div>
 
           <button
             onClick={onConfirm}
