@@ -22,7 +22,7 @@ export const BoardCell = React.memo(function BoardCell({ card, isStarter, isClic
   if (!card) {
     const empty = isClickable
       ? `${base} border-2 border-dashed border-green-500 bg-slate-900 cursor-pointer hover:bg-green-950 hover:border-green-400`
-      : `${base} border border-slate-700 bg-slate-900`;
+      : `${base} border-2 border-dashed border-slate-700 bg-slate-900`;
     return <div className={empty} onClick={isClickable ? onClick : undefined} />;
   }
 
