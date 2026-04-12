@@ -45,3 +45,6 @@ node_modules
 
 # Claude Code local config and memory
 .claude/
+
+# Code coverage reports
+/coverage/
