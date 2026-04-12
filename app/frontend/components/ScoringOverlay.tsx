@@ -25,17 +25,27 @@ function MiniCard({ card }: { card: Card }) {
 
 export function ScoringOverlay({ game, mySlot, onConfirm, isConfirmPending }: ScoringOverlayProps) {
   const [countdown, setCountdown] = useState(30);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (game.status !== "scoring") return;
+    if (game.status !== "scoring") {
+      setVisible(false);
+      return;
+    }
+    const timer = setTimeout(() => setVisible(true), 2000);
+    return () => clearTimeout(timer);
+  }, [game.status, game.round]);
+
+  useEffect(() => {
+    if (!visible) return;
     setCountdown(30);
     const interval = setInterval(() => {
       setCountdown((n) => Math.max(0, n - 1));
     }, 1000);
     return () => clearInterval(interval);
-  }, [game.status, game.round]);
+  }, [visible]);
 
-  if (game.status !== "scoring") return null;
+  if (!visible) return null;
 
   const myScores  = mySlot === "player1" ? game.col_scores : game.row_scores;
   const oppScores = mySlot === "player1" ? game.row_scores : game.col_scores;
