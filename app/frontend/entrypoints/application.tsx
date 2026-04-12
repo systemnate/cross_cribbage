@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HomePage } from "../components/HomePage";
 import { GamePage } from "../components/GamePage";
+import { JoinPage } from "../components/JoinPage";
 import "./application.css";
 
 const queryClient = new QueryClient({
@@ -20,6 +21,7 @@ createRoot(root).render(
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/game/:id" element={<GamePage />} />
+          <Route path="/join/:id" element={<JoinPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

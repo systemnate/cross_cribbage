@@ -10,6 +10,7 @@ import { PegBoard } from "./PegBoard";
 import { CardPreview } from "./CardPreview";
 import { CribArea } from "./CribArea";
 import { ScoringOverlay } from "./ScoringOverlay";
+import { CopyLinkButton } from "./CopyLinkButton";
 
 export function GamePage() {
   const { id: urlId } = useParams<{ id: string }>();
@@ -48,10 +49,8 @@ export function GamePage() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 p-6">
         <h2 className="text-2xl font-black text-yellow-400">Waiting for opponent…</h2>
-        <p className="text-slate-400 text-sm">Share this game ID:</p>
-        <div className="bg-slate-800 border border-slate-600 rounded-lg px-6 py-3 font-mono text-yellow-300 text-sm select-all">
-          {game.id}
-        </div>
+        <p className="text-slate-400 text-sm">Send this link to your opponent:</p>
+        <CopyLinkButton gameId={game.id} />
       </div>
     );
   }

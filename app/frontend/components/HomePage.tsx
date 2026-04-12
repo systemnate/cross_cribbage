@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { setGameId, clearSession, getGames, addGame, removeGame, StoredGame } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
+import { CopyLinkButton } from "./CopyLinkButton";
 import type { GameState } from "../types/game";
 
 type StoredGameWithStatus = StoredGame & { serverStatus?: GameState["status"] };
@@ -114,10 +115,8 @@ export function HomePage() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 p-6">
         <h1 className="text-3xl font-black text-green-400">Game created!</h1>
-        <p className="text-slate-400 text-sm">Share this ID with your opponent:</p>
-        <div className="bg-slate-800 border border-slate-600 rounded-lg px-6 py-3 font-mono text-yellow-300 text-sm select-all">
-          {createdGameId}
-        </div>
+        <p className="text-slate-400 text-sm">Send this link to your opponent:</p>
+        <CopyLinkButton gameId={createdGameId} />
         <p className="text-slate-500 text-xs">Waiting for opponent to join…</p>
         <button
           onClick={() => navigate(`/game/${createdGameId}`)}
