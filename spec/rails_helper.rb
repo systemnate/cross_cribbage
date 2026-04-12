@@ -1,3 +1,19 @@
+require "simplecov"
+SimpleCov.start "rails" do
+  enable_coverage :branch
+  coverage_dir "coverage/backend"
+  add_filter "/spec/"
+  add_filter "/config/"
+  add_filter "/vendor/"
+  add_filter "/db/"
+  add_group "Models",      "app/models"
+  add_group "Controllers", "app/controllers"
+  add_group "Channels",    "app/channels"
+  add_group "Jobs",        "app/jobs"
+  add_group "Lib",         "app/lib"
+  minimum_coverage line: 75
+end
+
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
