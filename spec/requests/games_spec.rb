@@ -187,14 +187,14 @@ RSpec.describe "Api::Games", type: :request do
       expect(Game.exists?(game.id)).to be false
     end
 
-    it "returns 403 when called by someone other than the creator" do
-      cookies[:player_token] = "not-the-creator-token"
+    it "returns 401 when called by someone who is not a player in the game" do
+      cookies[:player_token] = "not-a-player-token"
       delete "/api/games/#{game.id}"
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:unauthorized)
       expect(Game.exists?(game.id)).to be true
     end
 
-    it "returns 422 when the game is not in waiting status" do
+    it "returns 422 when a human-vs-human game is active" do
       active_game = create(:game, :active)
       active_game.deal!
       active_game.reload
@@ -202,6 +202,38 @@ RSpec.describe "Api::Games", type: :request do
       delete "/api/games/#{active_game.id}"
       expect(response).to have_http_status(:unprocessable_entity)
       expect(Game.exists?(active_game.id)).to be true
+    end
+
+    it "allows the creator to destroy a vs-computer game in any state" do
+      vs_cpu = create(:game, :active, vs_computer: true)
+      vs_cpu.update!(status: "active")
+      cookies[:player_token] = vs_cpu.player1_token
+      delete "/api/games/#{vs_cpu.id}"
+      expect(response).to have_http_status(:ok)
+      expect(Game.exists?(vs_cpu.id)).to be false
+    end
+
+    it "allows the creator to destroy a finished human-vs-human game" do
+      finished_game = create(:game, :active, status: "finished")
+      cookies[:player_token] = finished_game.player1_token
+      delete "/api/games/#{finished_game.id}"
+      expect(response).to have_http_status(:ok)
+      expect(Game.exists?(finished_game.id)).to be false
+    end
+
+    it "allows player2 to destroy a finished human-vs-human game" do
+      finished_game = create(:game, :active, status: "finished")
+      cookies[:player_token] = finished_game.player2_token
+      delete "/api/games/#{finished_game.id}"
+      expect(response).to have_http_status(:ok)
+      expect(Game.exists?(finished_game.id)).to be false
+    end
+
+    it "returns 422 when player2 tries to destroy a waiting game they are not in" do
+      cookies[:player_token] = "random-token"
+      delete "/api/games/#{game.id}"
+      expect(response).to have_http_status(:unauthorized)
+      expect(Game.exists?(game.id)).to be true
     end
 
     it "returns 401 without a cookie" do

@@ -1,10 +1,10 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGame } from "../hooks/useGame";
 import { useGameChannel } from "../hooks/useGameChannel";
 import { useGameAction } from "../hooks/useGameAction";
 import { api } from "../lib/api";
-import { getGameId } from "../lib/storage";
+import { getGameId, removeGame } from "../lib/storage";
 import { Board } from "./Board";
 import { PegBoard } from "./PegBoard";
 import { CardPreview } from "./CardPreview";
@@ -24,6 +24,12 @@ export function GamePage() {
   }, []);
   useGameChannel(gameId, handleOpponentCardPlayed);
   const action = useGameAction(gameId);
+
+  useEffect(() => {
+    if (gameId && game?.status === "finished") {
+      removeGame(gameId);
+    }
+  }, [gameId, game?.status]);
 
   if (isLoading) {
     return <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Loading…</div>;

@@ -92,13 +92,18 @@ module Api
       unless @current_token.present?
         return render_error("Unauthorized", status: :unauthorized)
       end
-      unless @game.player1_token == @current_token
-        return render_error("Only the game creator can end this game", status: :forbidden)
+
+      slot = @game.player_slot(@current_token)
+      unless slot
+        return render_error("Unauthorized", status: :unauthorized)
       end
 
       @game.with_lock do
-        unless @game.status == "waiting"
-          return render_error("Can only end a game that is waiting for players", status: :unprocessable_entity)
+        unless can_destroy?(@game, slot)
+          return render_error(
+            "Can't end an active game against another player",
+            status: :unprocessable_entity
+          )
         end
 
         @game.destroy!
@@ -123,6 +128,13 @@ module Api
 
     def current_slot
       @game.player_slot(@current_token)
+    end
+
+    def can_destroy?(game, slot)
+      return true if game.vs_computer? && slot == "player1"
+      return true if game.status == "finished"
+      return true if game.status == "waiting" && slot == "player1"
+      false
     end
 
     def game_action(&block)

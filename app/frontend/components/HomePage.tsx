@@ -1,17 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
-import { setGameId, clearSession, getGames, addGame, removeGame } from "../lib/storage";
+import { setGameId, clearSession, getGames, addGame, removeGame, StoredGame } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
+import type { GameState } from "../types/game";
+
+type StoredGameWithStatus = StoredGame & { serverStatus?: GameState["status"] };
 
 export function HomePage() {
   const navigate = useNavigate();
   const [joinId, setJoinId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [createdGameId, setCreatedGameId] = useState<string | null>(null);
-  const [games, setGames] = useState(() => getGames());
+  const [games, setGames] = useState<StoredGameWithStatus[]>(() => getGames());
   const [endingGameId, setEndingGameId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const stored = getGames();
+    if (stored.length === 0) {
+      setGames([]);
+      return;
+    }
+
+    Promise.all(
+      stored.map((g) =>
+        api.getGame(g.gameId).then(
+          (state) => ({ g, state, missing: false }),
+          (err: Error) => ({ g, state: null, missing: err.message === "Game not found" }),
+        ),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const keep: StoredGameWithStatus[] = [];
+      for (const { g, state, missing } of results) {
+        if (missing || state?.status === "finished") {
+          removeGame(g.gameId);
+          continue;
+        }
+        keep.push({ ...g, serverStatus: state?.status });
+      }
+      setGames(keep);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const endGame = useMutation({
     mutationFn: api.deleteGame,
@@ -21,12 +57,12 @@ export function HomePage() {
     },
     onSuccess: (_data, gameId) => {
       removeGame(gameId);
-      setGames(getGames());
+      setGames((prev) => prev.filter((g) => g.gameId !== gameId));
     },
     onError: (e: Error, gameId) => {
       if (e.message === "Game not found") {
         removeGame(gameId);
-        setGames(getGames());
+        setGames((prev) => prev.filter((g) => g.gameId !== gameId));
       } else {
         setError(e.message);
       }
@@ -43,6 +79,7 @@ export function HomePage() {
       setGameId(game_id);
       setCreatedGameId(game_id);
       addGame(game_id, false);
+      setGames((prev) => [...prev.filter((g) => g.gameId !== game_id), { gameId: game_id, vsComputer: false, createdAt: Date.now(), serverStatus: "waiting" }]);
     },
     onError: (e: Error) => setError(e.message),
   });
@@ -150,39 +187,56 @@ export function HomePage() {
             <hr className="flex-1 border-slate-700" />
           </div>
           <div className="flex flex-col gap-2">
-            {games.map((g) => (
-              <div
-                key={g.gameId}
-                className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
-              >
-                <div className="flex flex-col">
-                  <span className="font-mono text-yellow-300 text-xs">
-                    {g.gameId.slice(0, 8)}
-                  </span>
-                  <span className="text-slate-500 text-xs">
-                    {g.vsComputer ? "vs Computer" : "vs Human"}
-                  </span>
+            {games.map((g) => {
+              const canEnd =
+                g.vsComputer ||
+                g.serverStatus === "waiting" ||
+                g.serverStatus === undefined;
+              const statusLabel =
+                g.serverStatus === "waiting"
+                  ? "Waiting"
+                  : g.serverStatus === "scoring"
+                  ? "Scoring"
+                  : g.serverStatus === "active"
+                  ? "In progress"
+                  : null;
+              return (
+                <div
+                  key={g.gameId}
+                  className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-mono text-yellow-300 text-xs">
+                      {g.gameId.slice(0, 8)}
+                    </span>
+                    <span className="text-slate-500 text-xs">
+                      {g.vsComputer ? "vs Computer" : "vs Human"}
+                      {statusLabel ? ` · ${statusLabel}` : ""}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setGameId(g.gameId);
+                        navigate(`/game/${g.gameId}`);
+                      }}
+                      className="rounded bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-semibold px-3 py-1"
+                    >
+                      Rejoin
+                    </button>
+                    {canEnd && (
+                      <button
+                        onClick={() => endGame.mutate(g.gameId)}
+                        disabled={endingGameId === g.gameId}
+                        className="rounded bg-red-900 hover:bg-red-800 text-red-200 text-xs font-semibold px-3 py-1 disabled:opacity-50"
+                      >
+                        {endingGameId === g.gameId ? "Ending…" : "End"}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setGameId(g.gameId);
-                      navigate(`/game/${g.gameId}`);
-                    }}
-                    className="rounded bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-semibold px-3 py-1"
-                  >
-                    Rejoin
-                  </button>
-                  <button
-                    onClick={() => endGame.mutate(g.gameId)}
-                    disabled={endingGameId === g.gameId}
-                    className="rounded bg-red-900 hover:bg-red-800 text-red-200 text-xs font-semibold px-3 py-1 disabled:opacity-50"
-                  >
-                    {endingGameId === g.gameId ? "Ending…" : "End"}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
