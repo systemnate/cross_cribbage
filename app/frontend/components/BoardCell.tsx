@@ -17,7 +17,7 @@ const SUIT_COLOR: Record<string, string> = {
 };
 
 export const BoardCell = React.memo(function BoardCell({ card, isStarter, isClickable, onClick, justPlayed }: BoardCellProps) {
-  const base = "h-full md:h-auto md:flex-1 md:min-w-0 aspect-[11/14] rounded-md flex flex-col items-center justify-center text-3xl font-bold select-none transition-all";
+  const base = "flex-1 min-w-0 h-full md:h-auto aspect-[11/14] rounded-md flex flex-col items-center justify-center text-3xl font-bold select-none transition-all";
 
   if (!card) {
     const empty = isClickable
