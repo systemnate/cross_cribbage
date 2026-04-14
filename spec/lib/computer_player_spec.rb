@@ -283,6 +283,95 @@ RSpec.describe ComputerPlayer do
     end
   end
 
+  describe "#decide with defensive blocking" do
+    def card(rank, suit, id = SecureRandom.uuid)
+      { "rank" => rank, "suit" => suit, "id" => id }
+    end
+
+    # Column 0 has 7-7-8-8 — a monster threat for the opponent.
+    # The only open slot in column 0 is (2, 0).
+    # The computer's next card is A♦ — low synergy, good blocker.
+    # The computer should place at (2, 0) to disrupt the opponent's column,
+    # even though there's no immediate row benefit.
+    let(:starter) { card("3", "♥") }
+
+    let(:board) do
+      b = Array.new(5) { Array.new(5, nil) }
+      b[2][2] = starter
+      b[0][0] = card("7", "♠")
+      b[1][0] = card("7", "♦")
+      b[3][0] = card("8", "♣")
+      b[4][0] = card("8", "♥")
+      b
+    end
+
+    let(:game) do
+      create(:game,
+        board: board,
+        starter_card: starter,
+        row_scores: [nil, nil, nil, nil, nil],
+        col_scores: [nil, nil, nil, nil, nil],
+        player1_deck: [card("6", "♠"), card("9", "♦"), card("5", "♣"), card("10", "♥"),
+                       card("4", "♠"), card("J", "♦"), card("Q", "♣"), card("K", "♥")],
+        player2_deck: [card("A", "♦"), card("2", "♣"), card("4", "♥")],
+        player2_crib_discards: 2,
+        player1_crib_discards: 2,
+        crib_owner: "player1"
+      )
+    end
+
+    it "blocks the dangerous column by placing at (2, 0)" do
+      result = described_class.new(game).decide
+      expect(result[:action]).to eq(:place)
+      expect(result[:row]).to eq(2)
+      expect(result[:col]).to eq(0)
+    end
+  end
+
+  describe "#decide prefers building potential over completing low-value rows" do
+    def card(rank, suit, id = SecureRandom.uuid)
+      { "rank" => rank, "suit" => suit, "id" => id }
+    end
+
+    # Row 0 has 4 cards: A-2-3-K. Placing a Q completes it for ~3-4 points (a run of 3).
+    # Row 1 has 2 cards: 5-5. Placing a Q (value 10) gives a fifteen (5+10) with
+    #   high potential for more fifteens/pairs with remaining 5s and 10-value cards.
+    # The computer should prefer row 1 for its higher potential.
+    let(:starter) { card("3", "♥") }
+
+    let(:board) do
+      b = Array.new(5) { Array.new(5, nil) }
+      b[2][2] = starter
+      b[0][0] = card("A", "♠")
+      b[0][1] = card("2", "♦")
+      b[0][3] = card("K", "♣")
+      b[0][4] = card("3", "♠")
+      b[1][0] = card("5", "♠")
+      b[1][1] = card("5", "♦")
+      b
+    end
+
+    let(:game) do
+      create(:game,
+        board: board,
+        starter_card: starter,
+        row_scores: [nil, nil, nil, nil, nil],
+        col_scores: [nil, nil, nil, nil, nil],
+        player1_deck: [],
+        player2_deck: [card("Q", "♥"), card("5", "♥"), card("10", "♣"), card("J", "♦")],
+        player2_crib_discards: 2,
+        player1_crib_discards: 2,
+        crib_owner: "player1"
+      )
+    end
+
+    it "places in row 1 (higher potential) rather than completing row 0" do
+      result = described_class.new(game).decide
+      expect(result[:action]).to eq(:place)
+      expect(result[:row]).to eq(1)
+    end
+  end
+
   describe "#defensive_score (via send)" do
     def card(rank, suit, id = SecureRandom.uuid)
       { "rank" => rank, "suit" => suit, "id" => id }
