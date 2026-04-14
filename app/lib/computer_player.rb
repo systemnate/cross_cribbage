@@ -76,6 +76,8 @@ class ComputerPlayer
 
   # Evaluate how placing `card` at (row, col) affects the opponent's
   # best-case score in that column. Positive = disrupted opponent.
+  # Uses unknown_cards (cards not visible to the computer) instead of
+  # peeking at the opponent's actual deck.
   def defensive_score(_row, col, card, col_base)
     col_cards_without = col_base[col]
     col_cards_with    = col_cards_without + [card]
@@ -83,10 +85,8 @@ class ComputerPlayer
     empty_without = 5 - col_cards_without.size
     empty_with    = 5 - col_cards_with.size
 
-    opponent_deck = @game.player1_deck
-
-    potential_without = best_fill_score(col_cards_without, opponent_deck, empty_without, col_index: col)
-    potential_with    = best_fill_score(col_cards_with, opponent_deck, empty_with, col_index: col)
+    potential_without = best_fill_score(col_cards_without, unknown_cards, empty_without, col_index: col)
+    potential_with    = best_fill_score(col_cards_with, unknown_cards, empty_with, col_index: col)
 
     potential_without - potential_with
   end
@@ -125,5 +125,47 @@ class ComputerPlayer
     end
 
     best
+  end
+
+  # Cards the computer cannot see: the full 52-card deck minus everything
+  # visible to it (its own deck, the board, the starter, and its own crib
+  # discards). This is the fair pool for estimating opponent potential.
+  def unknown_cards
+    @unknown_cards ||= begin
+      known = Set.new
+
+      # Computer's own deck
+      @game.player2_deck.each { |c| known << card_key(c) }
+
+      # All cards on the board (including starter at center)
+      @game.board.each do |row|
+        row.each { |c| known << card_key(c) if c }
+      end
+
+      # Starter card
+      known << card_key(@game.starter_card) if @game.starter_card
+
+      # Note: we don't exclude the computer's crib discards from the pool
+      # because we can't reliably distinguish them from the opponent's
+      # discards in the crib array. This is conservative — the computer
+      # treats its own discards as potentially in the opponent's hand.
+
+      # Build the unknown pool: all 52 cards minus known ones
+      pool = Game::RANKS.flat_map do |rank|
+        Game::SUITS.filter_map do |suit|
+          key = "#{rank}-#{suit}"
+          { "rank" => rank, "suit" => suit } unless known.include?(key)
+        end
+      end
+
+      # Cap the pool to keep combination calculations tractable.
+      # The opponent's actual deck is at most 14 cards, so 16 is a
+      # generous sample that stays performant while covering the space.
+      pool.size > 16 ? pool.sample(16) : pool
+    end
+  end
+
+  def card_key(card)
+    "#{card['rank']}-#{card['suit']}"
   end
 end
