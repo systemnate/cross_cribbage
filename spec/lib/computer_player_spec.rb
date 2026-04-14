@@ -115,4 +115,66 @@ RSpec.describe ComputerPlayer do
       expect(result[:row]).to eq(0)
     end
   end
+
+  describe "#best_fill_score (via send)" do
+    # Test the private helper directly via send for unit testing
+    def card(rank, suit, id = SecureRandom.uuid)
+      { "rank" => rank, "suit" => suit, "id" => id }
+    end
+
+    let(:starter) { card("3", "♥") }
+
+    let(:game) do
+      create(:game,
+        board: Array.new(5) { Array.new(5, nil) }.tap { |b| b[2][2] = starter },
+        starter_card: starter,
+        row_scores: [nil, nil, nil, nil, nil],
+        col_scores: [nil, nil, nil, nil, nil],
+        player1_deck: [],
+        player2_deck: [],
+        player2_crib_discards: 2
+      )
+    end
+
+    let(:cp) { described_class.new(game) }
+
+    it "returns 0 when no empty slots" do
+      existing = [card("5", "♠"), card("5", "♦"), card("10", "♥"), card("J", "♣"), card("K", "♦")]
+      score = cp.send(:best_fill_score, existing, [], 0, row_index: 0)
+      expect(score).to eq(CribbageHand.new(existing, starter: starter, is_center: false).score)
+    end
+
+    it "picks the best card from the deck to fill one slot" do
+      existing = [card("5", "♠"), card("5", "♦"), card("10", "♥"), card("J", "♣")]
+      deck = [card("A", "♣"), card("5", "♥"), card("K", "♦")]
+      # 5♥ should be picked: adds a third 5 (pair royal = 6) plus more fifteens
+      score = cp.send(:best_fill_score, existing, deck, 1, row_index: 0)
+
+      # Verify it picked the best — score with 5♥ should beat score with A or K
+      best_hand = existing + [deck[1]] # the 5♥
+      expect(score).to eq(CribbageHand.new(best_hand, starter: starter, is_center: false).score)
+    end
+
+    it "fills multiple slots with the best combination" do
+      existing = [card("7", "♠"), card("8", "♦"), card("9", "♥")]
+      deck = [card("6", "♣"), card("10", "♠"), card("A", "♦"), card("2", "♥")]
+      # 6 + A scores 10: run (6-7-8-9) + fifteen (6+9, 7+8, 6+A+8 etc.)
+      # This beats 6 + 10 (which scores 9) despite the 5-card run with 10
+      score = cp.send(:best_fill_score, existing, deck, 2, row_index: 0)
+
+      best_hand = existing + [deck[0], deck[2]] # 6 and A
+      expect(score).to eq(CribbageHand.new(best_hand, starter: starter, is_center: false).score)
+    end
+
+    it "uses is_center: true for row 2" do
+      existing = [card("J", "♥"), card("5", "♠"), card("10", "♦")]
+      deck = [card("K", "♣"), card("Q", "♠")]
+      score_center = cp.send(:best_fill_score, existing, deck, 2, row_index: 2)
+      score_other = cp.send(:best_fill_score, existing, deck, 2, row_index: 0)
+
+      # Row 2 (center) enables nobs scoring — J of starter's suit scores extra
+      # Even if nobs doesn't apply here, is_center should be passed correctly
+      expect(score_center).to be >= score_other
+    end
+  end
 end

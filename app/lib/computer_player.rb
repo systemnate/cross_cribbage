@@ -87,6 +87,28 @@ class ComputerPlayer
     rank.to_i
   end
 
+  # Given cards already in a line and a deck to draw from, find the max
+  # score achievable by filling `empty_count` slots with cards from `deck`.
+  # Pass row_index for rows, col_index for columns (determines is_center).
+  def best_fill_score(existing_cards, deck, empty_count, row_index: nil, col_index: nil)
+    is_center = (row_index == 2 || col_index == 2)
+
+    if empty_count == 0 || deck.empty?
+      return CribbageHand.new(existing_cards, starter: @game.starter_card, is_center: is_center).score
+    end
+
+    fillable = [empty_count, deck.size].min
+    best = 0
+
+    deck.combination(fillable).each do |combo|
+      hand = existing_cards + combo
+      score = CribbageHand.new(hand, starter: @game.starter_card, is_center: is_center).score
+      best = score if score > best
+    end
+
+    best
+  end
+
   def simulate_net_impact(row, col, card, row_base = nil, col_base = nil)
     current_row_score = @game.row_scores[row].to_i
     current_col_score = @game.col_scores[col].to_i
