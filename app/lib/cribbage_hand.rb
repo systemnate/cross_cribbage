@@ -85,7 +85,7 @@ class CribbageHand
       c["rank"] == "J" &&
         c["suit"] == @starter["suit"] &&
         c["id"] != @starter["id"]
-    end * 2
+    end * 1
   end
 
   def consecutive?(values)
