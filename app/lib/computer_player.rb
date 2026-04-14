@@ -109,6 +109,23 @@ class ComputerPlayer
     best
   end
 
+  # Evaluate how placing `card` at (row, col) affects the opponent's
+  # best-case score in that column. Positive = disrupted opponent.
+  def defensive_score(row, col, card, col_base)
+    col_cards_without = col_base[col]
+    col_cards_with    = col_cards_without + [card]
+
+    empty_without = 5 - col_cards_without.size
+    empty_with    = 5 - col_cards_with.size
+
+    opponent_deck = @game.player1_deck
+
+    potential_without = best_fill_score(col_cards_without, opponent_deck, empty_without, col_index: col)
+    potential_with    = best_fill_score(col_cards_with, opponent_deck, empty_with, col_index: col)
+
+    potential_without - potential_with
+  end
+
   def simulate_net_impact(row, col, card, row_base = nil, col_base = nil)
     current_row_score = @game.row_scores[row].to_i
     current_col_score = @game.col_scores[col].to_i

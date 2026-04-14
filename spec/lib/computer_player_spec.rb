@@ -177,4 +177,78 @@ RSpec.describe ComputerPlayer do
       expect(score_center).to be >= score_other
     end
   end
+
+  describe "#defensive_score (via send)" do
+    def card(rank, suit, id = SecureRandom.uuid)
+      { "rank" => rank, "suit" => suit, "id" => id }
+    end
+
+    let(:starter) { card("3", "♥") }
+
+    # Blocking scenario: column has 7-7-8-8, computer places an Ace.
+    # The Ace should disrupt the opponent's best-case score.
+    describe "blocking a dangerous column" do
+      let(:board) do
+        b = Array.new(5) { Array.new(5, nil) }
+        b[2][2] = starter
+        b[0][0] = card("7", "♠")
+        b[1][0] = card("7", "♦")
+        b[3][0] = card("8", "♣")
+        b[4][0] = card("8", "♥")
+        b
+      end
+
+      let(:game) do
+        create(:game,
+          board: board,
+          starter_card: starter,
+          row_scores: [nil, nil, nil, nil, nil],
+          col_scores: [nil, nil, nil, nil, nil],
+          player1_deck: [card("6", "♠"), card("9", "♦"), card("5", "♣"), card("10", "♥")],
+          player2_deck: [card("A", "♦")],
+          player2_crib_discards: 2
+        )
+      end
+
+      let(:cp) { described_class.new(game) }
+
+      it "returns a positive score (placement disrupts opponent)" do
+        col_base = Array.new(5) { |c| board.map { |r| r[c] }.compact }
+        score = cp.send(:defensive_score, 2, 0, card("A", "♦"), col_base)
+        expect(score).to be > 0
+      end
+    end
+
+    # Feeding scenario: column has 7-8, computer places a 6.
+    # The 6 helps the opponent build a run.
+    describe "feeding a dangerous column" do
+      let(:board) do
+        b = Array.new(5) { Array.new(5, nil) }
+        b[2][2] = starter
+        b[0][1] = card("7", "♠")
+        b[1][1] = card("8", "♦")
+        b
+      end
+
+      let(:game) do
+        create(:game,
+          board: board,
+          starter_card: starter,
+          row_scores: [nil, nil, nil, nil, nil],
+          col_scores: [nil, nil, nil, nil, nil],
+          player1_deck: [card("6", "♣"), card("9", "♥"), card("5", "♦"), card("10", "♣")],
+          player2_deck: [card("6", "♠")],
+          player2_crib_discards: 2
+        )
+      end
+
+      let(:cp) { described_class.new(game) }
+
+      it "returns a negative score (placement helps opponent)" do
+        col_base = Array.new(5) { |c| board.map { |r| r[c] }.compact }
+        score = cp.send(:defensive_score, 2, 1, card("6", "♠"), col_base)
+        expect(score).to be < 0
+      end
+    end
+  end
 end
