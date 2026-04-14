@@ -76,7 +76,7 @@ class ComputerPlayer
 
   # Evaluate how placing `card` at (row, col) affects the opponent's
   # best-case score in that column. Positive = disrupted opponent.
-  def defensive_score(row, col, card, col_base)
+  def defensive_score(_row, col, card, col_base)
     col_cards_without = col_base[col]
     col_cards_with    = col_cards_without + [card]
 
@@ -94,13 +94,13 @@ class ComputerPlayer
   # Evaluate the future scoring ceiling of placing `card` in this row.
   # Returns 0 for row-completing placements (net_impact handles those).
   # Returns positive values for rows with high upside.
-  def row_potential(row, col, card, row_base)
+  def row_potential(row, _col, card, row_base)
     row_cards_with = row_base[row] + [card]
     empty_after = 5 - row_cards_with.size
 
     return 0 if empty_after == 0
 
-    current_row_score = @game.row_scores[row].to_i
+    current_row_score = CribbageHand.new(row_base[row], starter: @game.starter_card, is_center: row == 2).score
     best_case = best_fill_score(row_cards_with, @game.player2_deck, empty_after, row_index: row)
 
     best_case - current_row_score
