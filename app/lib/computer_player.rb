@@ -126,6 +126,21 @@ class ComputerPlayer
     potential_without - potential_with
   end
 
+  # Evaluate the future scoring ceiling of placing `card` in this row.
+  # Returns 0 for row-completing placements (net_impact handles those).
+  # Returns positive values for rows with high upside.
+  def row_potential(row, col, card, row_base)
+    row_cards_with = row_base[row] + [card]
+    empty_after = 5 - row_cards_with.size
+
+    return 0 if empty_after == 0
+
+    current_row_score = @game.row_scores[row].to_i
+    best_case = best_fill_score(row_cards_with, @game.player2_deck, empty_after, row_index: row)
+
+    best_case - current_row_score
+  end
+
   def simulate_net_impact(row, col, card, row_base = nil, col_base = nil)
     current_row_score = @game.row_scores[row].to_i
     current_col_score = @game.col_scores[col].to_i
