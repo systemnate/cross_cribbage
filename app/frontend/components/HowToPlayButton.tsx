@@ -4,6 +4,72 @@ import type { Card } from "../types/game";
 
 const card = (rank: string, suit: string, id: string): Card => ({ rank, suit, id });
 
+// 5×5 sample board. Center cell is the starter. Display-index rows/cols.
+const SAMPLE_BOARD: Card[][] = [
+  [ card("2", "♠", "s-r0c0"), card("8", "♥", "s-r0c1"), card("K", "♦", "s-r0c2"), card("A", "♣", "s-r0c3"), card("5", "♦", "s-r0c4") ],
+  [ card("7", "♠", "s-r1c0"), card("7", "♣", "s-r1c1"), card("8", "♦", "s-r1c2"), card("3", "♣", "s-r1c3"), card("Q", "♥", "s-r1c4") ],
+  [ card("4", "♦", "s-r2c0"), card("6", "♠", "s-r2c1"), card("5", "♥", "s-starter"), card("9", "♦", "s-r2c3"), card("2", "♣", "s-r2c4") ],
+  [ card("10", "♣", "s-r3c0"), card("J", "♠", "s-r3c1"), card("2", "♥", "s-r3c2"), card("6", "♣", "s-r3c3"), card("3", "♠", "s-r3c4") ],
+  [ card("K", "♠", "s-r4c0"), card("J", "♥", "s-r4c1"), card("4", "♠", "s-r4c2"), card("Q", "♣", "s-r4c3"), card("A", "♥", "s-r4c4") ],
+];
+
+const SAMPLE_STARTER_ID = "s-starter";
+
+// Computed via `CribbageHand` — see Task 4 Step 2. Indices are display-rows / display-cols.
+const ROW_SCORES: number[] = [4, 6, 9, 4, 9];
+const COL_SCORES: number[] = [0, 7, 4, 2, 7];
+
+function SampleBoard() {
+  return (
+    <div className="flex flex-col gap-1 w-full">
+      {/* direction arrows — match live Board */}
+      <div className="flex-shrink-0 flex gap-1 items-center">
+        <div className="flex gap-1 flex-1 min-w-0">
+          {SAMPLE_BOARD[0].map((_, cIdx) => (
+            <div key={cIdx} className="flex-1 min-w-0 text-center text-xs text-green-400 leading-none">↓</div>
+          ))}
+        </div>
+        <div className="w-8 ml-1 text-right text-xs text-blue-400 whitespace-nowrap">opp →</div>
+      </div>
+
+      {SAMPLE_BOARD.map((row, rIdx) => (
+        <div key={rIdx} className="flex items-center gap-1">
+          <div className="flex gap-1 flex-1 min-w-0">
+            {row.map((c) => {
+              const isStarter = c.id === SAMPLE_STARTER_ID;
+              return (
+                <div
+                  key={c.id}
+                  className={`flex-1 min-w-0 aspect-[11/14] rounded border ${isStarter ? "border-yellow-400 border-2" : "border-slate-600"} bg-slate-800 flex flex-col items-center justify-center gap-0.5`}
+                >
+                  <span className="text-slate-100 text-[10px] font-bold leading-none">{c.rank}</span>
+                  <span className={`${c.suit === "♥" || c.suit === "♦" ? "text-red-400" : "text-slate-100"} text-[10px] leading-none`}>{c.suit}</span>
+                </div>
+              );
+            })}
+          </div>
+          {/* row score on the right — blue (opponent's perspective in the modal) */}
+          <span className="flex-shrink-0 w-8 text-right text-xs font-mono text-blue-400 ml-1">
+            {ROW_SCORES[rIdx]}
+          </span>
+        </div>
+      ))}
+
+      {/* column scores below */}
+      <div className="flex-shrink-0 flex gap-1 mt-1 items-center">
+        <div className="flex gap-1 flex-1 min-w-0">
+          {SAMPLE_BOARD[0].map((_, cIdx) => (
+            <div key={cIdx} className="flex-1 min-w-0 text-center text-xs font-mono text-green-400">
+              {COL_SCORES[cIdx]}
+            </div>
+          ))}
+        </div>
+        <div className="w-8 ml-1 text-right text-xs text-green-400">you</div>
+      </div>
+    </div>
+  );
+}
+
 export function HowToPlayButton() {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -161,7 +227,16 @@ function HowToPlayModal({ onClose }: { onClose: () => void }) {
             </ul>
           </section>
 
-          {/* 7. Round end (section 6 — sample board — is added in Task 4) */}
+          {/* 6. Annotated sample board */}
+          <section>
+            <h3 className="text-slate-200 font-bold mb-2">Sample board</h3>
+            <SampleBoard />
+            <p className="mt-2 text-slate-400 text-xs">
+              Row 2 (with the pair of 7s and two fifteens) scores 6 pts. The center cell is the starter, outlined in yellow. The crib is scored separately for whoever owns it that round.
+            </p>
+          </section>
+
+          {/* 7. Round end */}
           <section>
             <h3 className="text-slate-200 font-bold mb-1">End of round</h3>
             <p>The player who scores more that round pegs the point difference. First to 31 total pegging points wins the game.</p>
