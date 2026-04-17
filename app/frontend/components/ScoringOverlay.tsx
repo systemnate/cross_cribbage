@@ -1,6 +1,6 @@
 // app/frontend/components/ScoringOverlay.tsx
 import React, { useEffect, useState } from "react";
-import type { Card, GameState } from "../types/game";
+import type { GameState } from "../types/game";
 import { MiniCard } from "./MiniCard";
 
 interface ScoringOverlayProps {
