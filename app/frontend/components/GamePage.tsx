@@ -11,6 +11,7 @@ import { CardPreview } from "./CardPreview";
 import { CribArea } from "./CribArea";
 import { ScoringOverlay } from "./ScoringOverlay";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { HowToPlayButton } from "./HowToPlayButton";
 
 export function GamePage() {
   const { id: urlId } = useParams<{ id: string }>();
@@ -33,25 +34,36 @@ export function GamePage() {
   }, [gameId, game?.status]);
 
   if (isLoading) {
-    return <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Loading…</div>;
+    return (
+      <>
+        <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Loading…</div>
+        <HowToPlayButton />
+      </>
+    );
   }
 
   if (error || !game) {
     return (
-      <div className="min-h-screen bg-slate-950 text-red-400 flex flex-col items-center justify-center gap-4">
-        <p>Could not load game.</p>
-        <button onClick={() => navigate("/")} className="text-slate-400 underline text-sm">Back to home</button>
-      </div>
+      <>
+        <div className="min-h-screen bg-slate-950 text-red-400 flex flex-col items-center justify-center gap-4">
+          <p>Could not load game.</p>
+          <button onClick={() => navigate("/")} className="text-slate-400 underline text-sm">Back to home</button>
+        </div>
+        <HowToPlayButton />
+      </>
     );
   }
 
   if (game.status === "waiting") {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 p-6">
-        <h2 className="text-2xl font-black text-yellow-400">Waiting for opponent…</h2>
-        <p className="text-slate-400 text-sm">Send this link to your opponent:</p>
-        <CopyLinkButton gameId={game.id} />
-      </div>
+      <>
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 p-6">
+          <h2 className="text-2xl font-black text-yellow-400">Waiting for opponent…</h2>
+          <p className="text-slate-400 text-sm">Send this link to your opponent:</p>
+          <CopyLinkButton gameId={game.id} />
+        </div>
+        <HowToPlayButton />
+      </>
     );
   }
 
@@ -67,28 +79,36 @@ export function GamePage() {
     }));
 
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
-        {iWon && (
-          <div className="fixed inset-0 pointer-events-none overflow-hidden">
-            {confettiPieces.map((p, i) => (
-              <div
-                key={i}
-                className={`absolute top-0 ${p.wide ? "w-2 h-3" : "w-3 h-3 rounded-sm"} ${p.color} confetti-piece`}
-                style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration }}
-              />
-            ))}
-          </div>
-        )}
-        <h2 className={`text-5xl font-black tracking-tight ${iWon ? "text-yellow-400" : "text-slate-400"}`}>
-          {iWon ? "You win!" : "Opponent wins."}
-        </h2>
-        <button onClick={() => navigate("/")} className="text-slate-400 underline text-sm">Play again</button>
-      </div>
+      <>
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+          {iWon && (
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+              {confettiPieces.map((p, i) => (
+                <div
+                  key={i}
+                  className={`absolute top-0 ${p.wide ? "w-2 h-3" : "w-3 h-3 rounded-sm"} ${p.color} confetti-piece`}
+                  style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration }}
+                />
+              ))}
+            </div>
+          )}
+          <h2 className={`text-5xl font-black tracking-tight ${iWon ? "text-yellow-400" : "text-slate-400"}`}>
+            {iWon ? "You win!" : "Opponent wins."}
+          </h2>
+          <button onClick={() => navigate("/")} className="text-slate-400 underline text-sm">Play again</button>
+        </div>
+        <HowToPlayButton />
+      </>
     );
   }
 
   if (!game.my_slot) {
-    return <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Joining game…</div>;
+    return (
+      <>
+        <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center">Joining game…</div>
+        <HowToPlayButton />
+      </>
+    );
   }
 
   const mySlot    = game.my_slot;
@@ -150,8 +170,9 @@ export function GamePage() {
   }
 
   return (
-    <div className="h-dvh bg-slate-950 overflow-hidden">
-      <div className="h-full w-full max-w-3xl mx-auto text-slate-100 flex flex-col p-2 gap-2 sm:p-3 sm:gap-3">
+    <>
+      <div className="h-dvh bg-slate-950 overflow-hidden">
+        <div className="h-full w-full max-w-3xl mx-auto text-slate-100 flex flex-col p-2 gap-2 sm:p-3 sm:gap-3">
         {/* Peg track */}
         <PegBoard
           myPeg={myPeg}
@@ -216,7 +237,9 @@ export function GamePage() {
           onConfirm={handleConfirmRound}
           isConfirmPending={action.isPending}
         />
+        </div>
       </div>
-    </div>
+      <HowToPlayButton />
+    </>
   );
 }
