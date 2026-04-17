@@ -5,19 +5,21 @@ import type { Card } from "../types/game";
 const card = (rank: string, suit: string, id: string): Card => ({ rank, suit, id });
 
 // 5×5 sample board. Center cell is the starter. Display-index rows/cols.
+// Layout: the pair-of-7s + two-fifteens example runs DOWN column 1 so it
+// demonstrates scoring in the player's (green ↓) direction.
 const SAMPLE_BOARD: Card[][] = [
-  [ card("2", "♠", "s-r0c0"), card("8", "♥", "s-r0c1"), card("K", "♦", "s-r0c2"), card("A", "♣", "s-r0c3"), card("5", "♦", "s-r0c4") ],
-  [ card("7", "♠", "s-r1c0"), card("7", "♣", "s-r1c1"), card("8", "♦", "s-r1c2"), card("3", "♣", "s-r1c3"), card("Q", "♥", "s-r1c4") ],
-  [ card("4", "♦", "s-r2c0"), card("6", "♠", "s-r2c1"), card("5", "♥", "s-starter"), card("9", "♦", "s-r2c3"), card("2", "♣", "s-r2c4") ],
-  [ card("10", "♣", "s-r3c0"), card("J", "♠", "s-r3c1"), card("2", "♥", "s-r3c2"), card("6", "♣", "s-r3c3"), card("3", "♠", "s-r3c4") ],
-  [ card("K", "♠", "s-r4c0"), card("J", "♥", "s-r4c1"), card("4", "♠", "s-r4c2"), card("Q", "♣", "s-r4c3"), card("A", "♥", "s-r4c4") ],
+  [ card("2", "♠", "s-r0c0"), card("7", "♠", "s-r0c1"), card("4", "♦", "s-r0c2"), card("10", "♣", "s-r0c3"), card("K", "♠", "s-r0c4") ],
+  [ card("8", "♥", "s-r1c0"), card("7", "♣", "s-r1c1"), card("6", "♠", "s-r1c2"), card("J", "♠", "s-r1c3"), card("J", "♥", "s-r1c4") ],
+  [ card("K", "♦", "s-r2c0"), card("8", "♦", "s-r2c1"), card("5", "♥", "s-starter"), card("2", "♥", "s-r2c3"), card("4", "♠", "s-r2c4") ],
+  [ card("A", "♣", "s-r3c0"), card("3", "♣", "s-r3c1"), card("9", "♦", "s-r3c2"), card("6", "♣", "s-r3c3"), card("Q", "♣", "s-r3c4") ],
+  [ card("5", "♦", "s-r4c0"), card("Q", "♥", "s-r4c1"), card("2", "♣", "s-r4c2"), card("3", "♠", "s-r4c3"), card("A", "♥", "s-r4c4") ],
 ];
 
 const SAMPLE_STARTER_ID = "s-starter";
 
-// Computed via `CribbageHand` — see Task 4 Step 2. Indices are display-rows / display-cols.
-const ROW_SCORES: number[] = [4, 6, 9, 4, 9];
-const COL_SCORES: number[] = [0, 7, 4, 2, 7];
+// Computed via `CribbageHand`. Indices are display-rows / display-cols.
+const ROW_SCORES: number[] = [0, 7, 4, 2, 7];
+const COL_SCORES: number[] = [4, 6, 9, 4, 9];
 
 function SampleBoard() {
   return (
@@ -42,8 +44,8 @@ function SampleBoard() {
                   key={c.id}
                   className={`flex-1 min-w-0 aspect-[11/14] rounded border ${isStarter ? "border-yellow-400 border-2" : "border-slate-600"} bg-slate-800 flex flex-col items-center justify-center gap-0.5`}
                 >
-                  <span className="text-slate-100 text-[10px] font-bold leading-none">{c.rank}</span>
-                  <span className={`${c.suit === "♥" || c.suit === "♦" ? "text-red-400" : "text-slate-100"} text-[10px] leading-none`}>{c.suit}</span>
+                  <span className="text-slate-100 text-3xl font-bold leading-none">{c.rank}</span>
+                  <span className={`${c.suit === "♥" || c.suit === "♦" ? "text-red-400" : "text-slate-100"} text-4xl leading-none`}>{c.suit}</span>
                 </div>
               );
             })}
@@ -232,7 +234,7 @@ function HowToPlayModal({ onClose }: { onClose: () => void }) {
             <h3 className="text-slate-200 font-bold mb-2">Sample board</h3>
             <SampleBoard />
             <p className="mt-2 text-slate-400 text-xs">
-              Row 2 (with the pair of 7s and two fifteens) scores 6 pts. The center cell is the starter, outlined in yellow. The crib is scored separately for whoever owns it that round.
+              Column 2 (with the pair of 7s and two fifteens) scores 6 pts. The center cell is the starter, outlined in yellow. The crib is scored separately for whoever owns it that round.
             </p>
           </section>
 
