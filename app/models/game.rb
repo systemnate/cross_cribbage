@@ -227,8 +227,8 @@ class Game < ApplicationRecord
     raise Error, "Not your turn"      unless current_turn == slot
   end
 
-  # Delay gives the HTTP response time to reach the client before the broadcast fires,
-  # preventing the onSuccess handler from overwriting the computer's already-broadcast move.
+  # The confirm-job delay gives the HTTP response time to reach the client before
+  # the scoring broadcast fires, preventing the onSuccess handler from racing it.
   def maybe_enqueue_computer_jobs!
     return unless vs_computer?
 

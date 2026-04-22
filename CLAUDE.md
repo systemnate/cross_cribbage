@@ -49,7 +49,7 @@ No JavaScript test suite exists currently.
 **`app/controllers/api/games_controller.rb`** — REST API. Token auth via `Authorization: Bearer <token>` header (set in `ApiController`).
 
 **Background jobs:**
-- `ComputerMoveJob` / `ComputerConfirmJob` — AI moves, enqueued with a 1-second delay from `Game#maybe_enqueue_computer_jobs!` after any state change
+- `ComputerMoveJob` / `ComputerConfirmJob` — AI moves, enqueued from `Game#maybe_enqueue_computer_jobs!` after any state change. `ComputerMoveJob` runs immediately; `ComputerConfirmJob` is delayed 1 second so the human's HTTP response reaches the client before the scoring broadcast fires
 - `AdvanceRoundJob` — auto-advances round 10 seconds after scoring phase (human vs human only)
 - `DestroyGameJob` — destroys game 2 hours after creation
 

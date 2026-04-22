@@ -159,9 +159,9 @@ class ComputerPlayer
       end
 
       # Cap the pool to keep combination calculations tractable.
-      # The opponent's actual deck is at most 14 cards, so 16 is a
-      # generous sample that stays performant while covering the space.
-      pool.size > 16 ? pool.sample(16) : pool
+      # Defensive scoring is C(pool, fillable); the C(_, 4) and C(_, 5) terms
+      # dominate decide-time, so this cap is the main perf knob.
+      pool.size > 10 ? pool.sample(10) : pool
     end
   end
 

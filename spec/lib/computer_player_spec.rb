@@ -321,7 +321,17 @@ RSpec.describe ComputerPlayer do
     end
 
     it "blocks the dangerous column by placing at (2, 0)" do
-      result = described_class.new(game).decide
+      cp = described_class.new(game)
+      # Stub unknown_cards to a curated pool that includes a 9 — the threat
+      # rank that would complete a 7-8-9 run in this column. The production
+      # pool is randomly sampled, which makes this assertion sampling-dependent.
+      allow(cp).to receive(:unknown_cards).and_return([
+        card("9", "♣"), card("9", "♠"),
+        card("2", "♣"), card("4", "♦"), card("Q", "♥"),
+        card("K", "♠"), card("J", "♣"), card("J", "♦"),
+        card("3", "♣"), card("4", "♥")
+      ])
+      result = cp.decide
       expect(result[:action]).to eq(:place)
       expect(result[:row]).to eq(2)
       expect(result[:col]).to eq(0)
@@ -406,6 +416,18 @@ RSpec.describe ComputerPlayer do
 
       let(:cp) { described_class.new(game) }
 
+      # Stub unknown_cards to a curated pool that includes a 9 — the threat
+      # rank that would complete a 7-8-9 run in this column. The production
+      # pool is randomly sampled, which makes this assertion sampling-dependent.
+      before do
+        allow(cp).to receive(:unknown_cards).and_return([
+          card("9", "♣"), card("9", "♠"),
+          card("2", "♣"), card("4", "♦"), card("Q", "♥"),
+          card("K", "♠"), card("J", "♣"), card("J", "♦"),
+          card("3", "♣"), card("4", "♥")
+        ])
+      end
+
       it "returns a positive score (placement disrupts opponent)" do
         col_base = Array.new(5) { |c| board.map { |r| r[c] }.compact }
         score = cp.send(:defensive_score, 2, 0, card("A", "♦"), col_base)
@@ -440,6 +462,18 @@ RSpec.describe ComputerPlayer do
       end
 
       let(:cp) { described_class.new(game) }
+
+      # Stub unknown_cards to include a 9 — adding 6 to {7,8} makes longer
+      # runs possible (6-7-8-9 = 4 vs 7-8-9 = 3), so the "with" arm scores
+      # higher than the "without" arm and defensive_score goes non-positive.
+      before do
+        allow(cp).to receive(:unknown_cards).and_return([
+          card("9", "♣"), card("9", "♠"),
+          card("2", "♣"), card("4", "♦"), card("Q", "♥"),
+          card("K", "♠"), card("J", "♣"), card("J", "♦"),
+          card("3", "♣"), card("4", "♥")
+        ])
+      end
 
       it "returns a non-positive score (placement does not disrupt opponent)" do
         col_base = Array.new(5) { |c| board.map { |r| r[c] }.compact }
