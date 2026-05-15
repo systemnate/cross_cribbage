@@ -154,11 +154,6 @@ class Game < ApplicationRecord
     self.player1_confirmed_scoring = false
     self.player2_confirmed_scoring = false
 
-    # Nibs: starter is a Jack → crib owner scores 2 pts
-    if starter["rank"] == "J"
-      self.send("#{crib_owner}_peg=", send("#{crib_owner}_peg") + 2)
-    end
-
     rescore_row!(2)
     rescore_col!(2)
   end
@@ -243,6 +238,8 @@ class Game < ApplicationRecord
     5.times { |i| rescore_row!(i); rescore_col!(i) }
 
     self.crib_score = CribbageHand.new(crib, starter: starter_card, is_crib: true).score
+    # Nibs: starter is a Jack → crib owner gets 2 pts on the crib hand for this round
+    self.crib_score += 2 if starter_card && starter_card["rank"] == "J"
 
     # Game rule (fixed for all rounds): player1 always scores columns; player2 always scores rows.
     # Crib score goes to whichever player owns the crib this round.

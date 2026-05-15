@@ -159,6 +159,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.2-x86_64-linux-musl)
       racc (~> 1.4)
+    ostruct (0.6.3)
     pg (1.6.3)
     pg (1.6.3-aarch64-linux)
     pg (1.6.3-aarch64-linux-musl)
@@ -329,6 +330,7 @@ DEPENDENCIES
   dockerfile-rails (>= 1.7)
   factory_bot_rails
   foreman
+  ostruct
   pg (~> 1.1)
   propshaft
   puma (>= 5.0)

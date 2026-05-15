@@ -74,7 +74,10 @@ export function CardPreview({ card, deckSize, isMyTurn, onDiscard, canDiscard, i
       )}
 
       {!isMyTurn && (
-        <span className="text-slate-600 text-xs italic">Waiting…</span>
+        <span className="text-slate-600 text-xs italic">
+          Waiting…{" "}
+          <span className="text-slate-500 not-italic">(Issue? Try reloading the page)</span>
+        </span>
       )}
     </div>
   );

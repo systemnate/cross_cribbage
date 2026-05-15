@@ -79,16 +79,15 @@ RSpec.describe Game, type: :model do
       expect(game.player2_crib_discards).to eq(0)
     end
 
-    it "grants 2 nibs points to crib_owner when starter is a Jack" do
-      # Force a Jack starter by mocking build_deck
+    it "does not award nibs to the peg track when starter is a Jack (it counts on the crib hand instead)" do
       jack_card = { "rank" => "J", "suit" => "♠", "id" => SecureRandom.uuid }
       game2 = create(:game, player2_token: SecureRandom.hex(16))
       allow(game2).to receive(:build_deck).and_return([jack_card] + Array.new(28) { |i|
         { "rank" => (i + 1).to_s, "suit" => "♥", "id" => SecureRandom.uuid }
       })
       game2.deal!
-      peg = game2.crib_owner == "player1" ? game2.player1_peg : game2.player2_peg
-      expect(peg).to eq(2)
+      expect(game2.player1_peg).to eq(0)
+      expect(game2.player2_peg).to eq(0)
     end
   end
 
