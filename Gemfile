@@ -8,7 +8,7 @@ gem "puma", ">= 5.0"
 gem "solid_cable", "~> 3.0"
 gem "solid_queue"
 gem "solid_cache"
-gem "vite_rails", "~> 3.0"
+gem "vite_rails", "~> 3.11"
 gem "rack-cors"
 gem "rack-attack"
 gem "bootsnap", require: false
