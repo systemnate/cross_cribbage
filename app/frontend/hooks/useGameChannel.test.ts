@@ -54,6 +54,8 @@ function makeGameState(overrides: Partial<GameState> = {}): GameState {
   };
 }
 
+// Server scopes the broadcast per player, so `my_next_card` here is always
+// the recipient's own card — never the opponent's.
 function makeBroadcast(overrides: Partial<GameChannelMessage> = {}): GameChannelMessage {
   return {
     type: "game_state",
@@ -75,8 +77,7 @@ function makeBroadcast(overrides: Partial<GameChannelMessage> = {}): GameChannel
     player2_confirmed_scoring: false,
     crib_hand: null,
     vs_computer: false,
-    player1_next_card: makeCard("Q", "♠"),
-    player2_next_card: makeCard("3", "♦"),
+    my_next_card: makeCard("K", "♠"),
     ...overrides,
   };
 }
@@ -119,21 +120,20 @@ describe("useGameChannel", () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  it("preserves my_slot and my_next_card from cache on same-round broadcast", () => {
+  it("preserves my_slot from cache", () => {
     queryClient.setQueryData(["game", "game-1"], makeGameState({
       my_slot: "player1",
       my_next_card: makeCard("K", "♠"),
     }));
 
     renderHook(() => useGameChannel("game-1"), { wrapper });
-    act(() => simulateBroadcast(makeBroadcast()));
+    act(() => simulateBroadcast(makeBroadcast({ my_next_card: makeCard("K", "♠") })));
 
     const updated = queryClient.getQueryData<GameState>(["game", "game-1"]);
     expect(updated!.my_slot).toBe("player1");
-    expect(updated!.my_next_card).toEqual(makeCard("K", "♠"));
   });
 
-  it("updates my_next_card from broadcast on round change (player1)", () => {
+  it("updates my_next_card from the broadcast's already-scoped value", () => {
     queryClient.setQueryData(["game", "game-1"], makeGameState({
       round: 1,
       my_slot: "player1",
@@ -144,31 +144,12 @@ describe("useGameChannel", () => {
 
     act(() => simulateBroadcast(makeBroadcast({
       round: 2,
-      player1_next_card: makeCard("7", "♣"),
-      player2_next_card: makeCard("2", "♦"),
+      my_next_card: makeCard("7", "♣"),
     })));
 
     const updated = queryClient.getQueryData<GameState>(["game", "game-1"]);
     expect(updated!.my_next_card).toEqual(makeCard("7", "♣"));
     expect(updated!.round).toBe(2);
-  });
-
-  it("uses player2_next_card when my_slot is player2 on round change", () => {
-    queryClient.setQueryData(["game", "game-1"], makeGameState({
-      round: 1,
-      my_slot: "player2",
-      my_next_card: makeCard("K", "♠"),
-    }));
-
-    renderHook(() => useGameChannel("game-1"), { wrapper });
-    act(() => simulateBroadcast(makeBroadcast({
-      round: 2,
-      player1_next_card: makeCard("7", "♣"),
-      player2_next_card: makeCard("2", "♦"),
-    })));
-
-    const updated = queryClient.getQueryData<GameState>(["game", "game-1"]);
-    expect(updated!.my_next_card).toEqual(makeCard("2", "♦"));
   });
 
   it("merges broadcast fields into cache", () => {

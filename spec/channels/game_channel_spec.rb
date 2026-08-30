@@ -6,11 +6,18 @@ RSpec.describe GameChannel, type: :channel do
   let(:token) { game.player1_token }
 
   describe "#subscribed" do
-    it "subscribes successfully with a valid player token" do
+    it "subscribes player1 to their own stream" do
       stub_connection player_token: token
       subscribe game_id: game.id
       expect(subscription).to be_confirmed
-      expect(subscription).to have_stream_from("game_#{game.id}")
+      expect(subscription).to have_stream_from("game_#{game.id}_player1")
+    end
+
+    it "subscribes player2 to their own stream" do
+      stub_connection player_token: game.player2_token
+      subscribe game_id: game.id
+      expect(subscription).to be_confirmed
+      expect(subscription).to have_stream_from("game_#{game.id}_player2")
     end
 
     it "rejects subscription with an invalid token" do
@@ -27,18 +34,19 @@ RSpec.describe GameChannel, type: :channel do
   end
 
   describe ".broadcast_game_state" do
-    it "broadcasts to the game channel" do
+    it "broadcasts to each player's own stream" do
       game.deal!
       expect {
         GameChannel.broadcast_game_state(game)
-      }.to have_broadcasted_to("game_#{game.id}")
+      }.to have_broadcasted_to("game_#{game.id}_player1")
+        .and have_broadcasted_to("game_#{game.id}_player2")
     end
 
     it "the payload includes required fields and excludes private HTTP-only fields" do
       game.deal!
       expect {
         GameChannel.broadcast_game_state(game)
-      }.to have_broadcasted_to("game_#{game.id}").with(
+      }.to have_broadcasted_to("game_#{game.id}_player1").with(
         hash_including(
           "type" => "game_state",
           "status" => game.status,
@@ -47,9 +55,9 @@ RSpec.describe GameChannel, type: :channel do
           "deck_size" => hash_including("player1", "player2")
         )
       ).and(
-        have_broadcasted_to("game_#{game.id}").with(
+        have_broadcasted_to("game_#{game.id}_player1").with(
           ->(payload) {
-            !payload.key?("my_slot") && !payload.key?("my_next_card") && !payload.key?("id")
+            !payload.key?("my_slot") && !payload.key?("id")
           }
         )
       )
@@ -59,10 +67,23 @@ RSpec.describe GameChannel, type: :channel do
       game.deal!
       expect {
         GameChannel.broadcast_game_state(game)
-      }.to have_broadcasted_to("game_#{game.id}").with(
+      }.to have_broadcasted_to("game_#{game.id}_player1").with(
         hash_including(
           "player1_confirmed_scoring" => false,
           "player2_confirmed_scoring" => false
+        )
+      )
+    end
+
+    it "sends each player only their own next card, never the opponent's" do
+      game.deal!
+      expect {
+        GameChannel.broadcast_game_state(game)
+      }.to have_broadcasted_to("game_#{game.id}_player1").with(
+        hash_including("my_next_card" => game.player1_deck.first.as_json)
+      ).and(
+        have_broadcasted_to("game_#{game.id}_player2").with(
+          hash_including("my_next_card" => game.player2_deck.first.as_json)
         )
       )
     end
