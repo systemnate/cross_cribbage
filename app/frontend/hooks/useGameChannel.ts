@@ -38,13 +38,6 @@ export function useGameChannel(
             }
           }
 
-          const roundChanged = data.round !== old.round;
-
-          // On a new round, use the broadcast's per-player next card; otherwise preserve cached value
-          const nextCard = roundChanged
-            ? (old.my_slot === "player1" ? data.player1_next_card : data.player2_next_card)
-            : old.my_next_card;
-
           // Merge broadcast fields; preserve private fields from HTTP cache
           const updated: GameState = {
             ...old,
@@ -65,9 +58,9 @@ export function useGameChannel(
             player1_confirmed_scoring: data.player1_confirmed_scoring,
             player2_confirmed_scoring: data.player2_confirmed_scoring,
             crib_hand:    data.crib_hand,
+            my_next_card: data.my_next_card,
             // Always preserve — not in broadcast
             my_slot:      old.my_slot,
-            my_next_card: nextCard,
           };
 
           queryClient.setQueryData(["game", gameId], updated);

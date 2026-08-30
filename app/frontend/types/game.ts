@@ -42,11 +42,10 @@ export interface GameState {
   my_next_card: Card | null;
 }
 
-// Broadcast payload — excludes private player fields, but includes per-player next cards
-export type GameChannelMessage = Omit<GameState, "id" | "my_slot" | "my_next_card"> & {
+// Broadcast payload — server scopes this per player, so `my_next_card` here
+// is always the recipient's own card, never the opponent's.
+export type GameChannelMessage = Omit<GameState, "id" | "my_slot"> & {
   type: "game_state";
-  player1_next_card: Card | null;
-  player2_next_card: Card | null;
 };
 
 export interface CreateGameResponse {
