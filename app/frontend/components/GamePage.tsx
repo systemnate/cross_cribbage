@@ -13,6 +13,81 @@ import { ScoringOverlay } from "./ScoringOverlay";
 import { CopyLinkButton } from "./CopyLinkButton";
 import { HowToPlayButton } from "./HowToPlayButton";
 
+function FinishedScreen({ game, onPlayAgain }: { game: NonNullable<ReturnType<typeof useGame>["data"]>; onPlayAgain: () => void }) {
+  const [showScore, setShowScore] = useState(true);
+  const iWon = game.winner_slot === game.my_slot;
+  const mySlot = game.my_slot ?? "player1";
+  const oppSlot = mySlot === "player1" ? "player2" : "player1";
+  const myPeg = game[`${mySlot}_peg`];
+  const oppPeg = game[`${oppSlot}_peg`];
+
+  const confettiColors = ["bg-yellow-400", "bg-green-400", "bg-blue-400", "bg-purple-400", "bg-red-400", "bg-orange-400", "bg-pink-400"];
+  const confettiPieces = Array.from({ length: 70 }, (_, i) => ({
+    color: confettiColors[i % confettiColors.length],
+    left: `${(i * 37 + 11) % 100}%`,
+    delay: `${((i * 0.17) % 2.5).toFixed(2)}s`,
+    duration: `${(2.2 + (i * 0.09) % 1.8).toFixed(2)}s`,
+    wide: i % 3 !== 0,
+  }));
+
+  return (
+    <>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+        {iWon && (
+          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+            {confettiPieces.map((p, i) => (
+              <div
+                key={i}
+                className={`absolute top-0 ${p.wide ? "w-2 h-3" : "w-3 h-3 rounded-sm"} ${p.color} confetti-piece`}
+                style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration }}
+              />
+            ))}
+          </div>
+        )}
+        <h2 className={`text-5xl font-black tracking-tight ${iWon ? "text-yellow-400" : "text-slate-400"}`}>
+          {iWon ? "You win!" : "Opponent wins."}
+        </h2>
+
+        {showScore && (
+          <div className="relative bg-slate-900 border border-slate-700 rounded-xl px-6 py-4 flex flex-col items-center gap-3 shadow-xl">
+            <button
+              onClick={() => setShowScore(false)}
+              aria-label="Dismiss score"
+              className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 text-sm leading-none w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-800"
+            >
+              ✕
+            </button>
+            <span className="text-xs uppercase tracking-wide text-slate-500">Final Score</span>
+            <div className="flex items-center gap-6">
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-slate-500">You</span>
+                <span className="text-3xl font-black text-slate-100">{myPeg}</span>
+              </div>
+              <span className="text-slate-600 text-xl">–</span>
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-slate-500">Opponent</span>
+                <span className="text-3xl font-black text-slate-100">{oppPeg}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!showScore && (
+          <button
+            onClick={() => setShowScore(true)}
+            className="text-slate-500 hover:text-slate-300 text-xs underline"
+          >
+            Show score
+          </button>
+        )}
+
+        <button onClick={onPlayAgain} className="text-slate-400 underline text-sm">Play again</button>
+      </div>
+      <HowToPlayButton />
+    </>
+  );
+}
+
 export function GamePage() {
   const { id: urlId } = useParams<{ id: string }>();
   const navigate       = useNavigate();
@@ -68,38 +143,7 @@ export function GamePage() {
   }
 
   if (game.status === "finished") {
-    const iWon = game.winner_slot === game.my_slot;
-    const confettiColors = ["bg-yellow-400", "bg-green-400", "bg-blue-400", "bg-purple-400", "bg-red-400", "bg-orange-400", "bg-pink-400"];
-    const confettiPieces = Array.from({ length: 70 }, (_, i) => ({
-      color: confettiColors[i % confettiColors.length],
-      left: `${(i * 37 + 11) % 100}%`,
-      delay: `${((i * 0.17) % 2.5).toFixed(2)}s`,
-      duration: `${(2.2 + (i * 0.09) % 1.8).toFixed(2)}s`,
-      wide: i % 3 !== 0,
-    }));
-
-    return (
-      <>
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
-          {iWon && (
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-              {confettiPieces.map((p, i) => (
-                <div
-                  key={i}
-                  className={`absolute top-0 ${p.wide ? "w-2 h-3" : "w-3 h-3 rounded-sm"} ${p.color} confetti-piece`}
-                  style={{ left: p.left, animationDelay: p.delay, animationDuration: p.duration }}
-                />
-              ))}
-            </div>
-          )}
-          <h2 className={`text-5xl font-black tracking-tight ${iWon ? "text-yellow-400" : "text-slate-400"}`}>
-            {iWon ? "You win!" : "Opponent wins."}
-          </h2>
-          <button onClick={() => navigate("/")} className="text-slate-400 underline text-sm">Play again</button>
-        </div>
-        <HowToPlayButton />
-      </>
-    );
+    return <FinishedScreen game={game} onPlayAgain={() => navigate("/")} />;
   }
 
   if (!game.my_slot) {
