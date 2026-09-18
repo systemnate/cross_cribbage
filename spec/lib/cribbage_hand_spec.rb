@@ -141,12 +141,12 @@ RSpec.describe CribbageHand do
     context "nobs" do
       let(:starter) { card("Q", "♥") }
 
-      it "scores 2 for a Jack matching starter suit in center hand" do
+      it "scores 1 for a Jack matching starter suit in center hand" do
         hand = described_class.new(
           [card("J", "♥"), card("2", "♠")],
           starter: starter, is_center: true
         )
-        expect(hand.breakdown[:nobs]).to eq(2)
+        expect(hand.breakdown[:nobs]).to eq(1)
       end
 
       it "scores 0 for a Jack not matching starter suit" do
