@@ -39,5 +39,6 @@ gem "dockerfile-rails", ">= 1.7", group: :development
 
 gem "redis", "~> 5.4"
 
-# ActiveSupport (8.0 and 8.1.3) passes quirks_mode, which json 3.x rejects
+# json 3 makes JSON.parse options keyword-only; ActiveSupport 8.1.3.1 still passes a hash.
+# Fixed in rails/rails#58601 (on 8-1-stable, unreleased). Remove this pin after upgrading past 8.1.3.1.
 gem "json", "~> 2.21"
