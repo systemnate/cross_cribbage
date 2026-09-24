@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { setGameId, clearSession, getGames, addGame, removeGame, StoredGame } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
