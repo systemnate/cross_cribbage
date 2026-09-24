@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import { useGame } from "../hooks/useGame";
 import { useGameChannel } from "../hooks/useGameChannel";
 import { useGameAction } from "../hooks/useGameAction";

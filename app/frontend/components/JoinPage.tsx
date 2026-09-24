@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { clearSession, setGameId, addGame } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
