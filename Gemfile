@@ -22,6 +22,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "brakeman", require: false
   gem "bundler-audit", require: false
+  gem "rubocop-rails-omakase", require: false
 end
 
 group :development do
@@ -34,6 +35,9 @@ group :test do
   gem "simplecov", require: false
 end
 
-gem "dockerfile-rails", ">= 1.7", :group => :development
+gem "dockerfile-rails", ">= 1.7", group: :development
 
 gem "redis", "~> 5.4"
+
+# ActiveSupport 8.0 passes quirks_mode, which json 3.x rejects; revisit after the Rails 8.1 upgrade
+gem "json", "~> 2.21"
