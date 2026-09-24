@@ -20,6 +20,8 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "rspec-rails", "~> 7.0"
   gem "factory_bot_rails"
+  gem "brakeman", require: false
+  gem "bundler-audit", require: false
 end
 
 group :development do
