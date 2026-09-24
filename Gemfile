@@ -1,7 +1,7 @@
 # Gemfile
 source "https://rubygems.org"
 
-gem "rails", "~> 8.0.2"
+gem "rails", "~> 8.1.3"
 gem "propshaft"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
@@ -39,5 +39,5 @@ gem "dockerfile-rails", ">= 1.7", group: :development
 
 gem "redis", "~> 5.4"
 
-# ActiveSupport 8.0 passes quirks_mode, which json 3.x rejects; revisit after the Rails 8.1 upgrade
+# ActiveSupport (8.0 and 8.1.3) passes quirks_mode, which json 3.x rejects
 gem "json", "~> 2.21"
