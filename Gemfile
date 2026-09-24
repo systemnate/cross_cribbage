@@ -1,7 +1,7 @@
 # Gemfile
 source "https://rubygems.org"
 
-gem "rails", "~> 8.0.2"
+gem "rails", "~> 8.1.3"
 gem "propshaft"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
@@ -22,6 +22,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "brakeman", require: false
   gem "bundler-audit", require: false
+  gem "rubocop-rails-omakase", require: false
 end
 
 group :development do
@@ -34,6 +35,10 @@ group :test do
   gem "simplecov", require: false
 end
 
-gem "dockerfile-rails", ">= 1.7", :group => :development
+gem "dockerfile-rails", ">= 1.7", group: :development
 
 gem "redis", "~> 5.4"
+
+# json 3 makes JSON.parse options keyword-only; ActiveSupport 8.1.3.1 still passes a hash.
+# Fixed in rails/rails#58601 (on 8-1-stable, unreleased). Remove this pin after upgrading past 8.1.3.1.
+gem "json", "~> 2.21"
