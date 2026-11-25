@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Development image — not for production (see Dockerfile)
 
-ARG RUBY_VERSION=3.3.5
+ARG RUBY_VERSION=3.3.14
 FROM docker.io/library/ruby:$RUBY_VERSION-slim
 
 WORKDIR /rails
