@@ -25,9 +25,8 @@ bin/vite dev
 bundle exec rspec                    # all specs
 bundle exec rspec spec/models        # model specs only
 bundle exec rspec spec/requests      # request specs only
+npm test                             # frontend specs (Vitest, *.test.ts[x])
 ```
-
-No JavaScript test suite exists currently.
 
 ## Architecture
 
