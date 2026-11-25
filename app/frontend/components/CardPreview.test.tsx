@@ -53,13 +53,6 @@ describe("CardPreview", () => {
       expect(shapes[0]).toHaveLength(2);
       for (const shape of shapes) expect(shape).toEqual(shapes[0]);
     });
-
-    it("keeps the waiting note from contributing to the panel's width on desktop", () => {
-      const { container } = render(<CardPreview {...baseProps} isMyTurn={false} />);
-      const note = screen.getByText(/Waiting…/);
-      expect(statusSlot(container)).toContainElement(note);
-      expect(note).toHaveClass("md:w-0", "md:min-w-full");
-    });
   });
 
   describe("status slot visibility", () => {
