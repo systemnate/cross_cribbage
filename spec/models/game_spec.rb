@@ -363,14 +363,67 @@ RSpec.describe Game, type: :model do
       expect(game.status).to eq("scoring")
     end
 
-    it "advances the winning player's peg by the score difference" do
-      game = create(:game, :active)
-      game.deal!
-      game.reload
-      fill_board!(game)
+    # Builds an active game whose board is full except the last cell, then places the
+    # final card so scoring runs on a fixed, known board (no random deal). Starter is 7♣.
+    def score_fixed_board!(grid:, crib:, crib_owner:, player1_peg: 0, player2_peg: 0)
+      card  = ->(code) { { "rank" => code[0..-2], "suit" => code[-1], "id" => code } }
+      board = grid.map { |row| row.map(&card) }
+      last_card = board[4][4]
+      board[4][4] = nil
 
-      peg_total = game.player1_peg + game.player2_peg
-      expect(peg_total).to be > 0
+      game = create(:game, :active,
+        board:        board,
+        starter_card: board[2][2],
+        crib:         crib.map(&card),
+        crib_owner:   crib_owner,
+        current_turn: "player2",
+        player2_deck: [last_card],
+        player1_crib_discards: 2,
+        player2_crib_discards: 2,
+        player1_peg:  player1_peg,
+        player2_peg:  player2_peg)
+      game.place_card!("player2", 4, 4)
+      game.reload
+    end
+
+    # Columns (player1): four aces 12, 2-2 pair 2, 9-9 pair 2, 8-8 pair 2, four kings 12 = 30.
+    # Rows (player2): only row 4's Q-Q pair scores = 2. Crib (player1): 3 4 10 Q + 7 = 0.
+    let(:winning_grid) do
+      [
+        %w[A♠ 2♥ 9♦ 8♣ K♠],
+        %w[A♥ 2♦ 9♣ 8♠ K♥],
+        %w[3♠ Q♦ 7♣ 6♥ 10♣],
+        %w[A♦ 6♣ J♦ 3♥ K♦],
+        %w[A♣ 10♠ Q♣ Q♥ K♣]
+      ]
+    end
+
+    it "advances the winning player's peg by the score difference" do
+      game = score_fixed_board!(grid: winning_grid, crib: %w[3♣ 4♠ 10♦ Q♠],
+                                crib_owner: "player1", player1_peg: 1, player2_peg: 3)
+
+      expect(game.status).to eq("scoring")
+      expect(game.col_scores.compact.sum).to eq(30)
+      expect(game.row_scores.compact.sum).to eq(2)
+      expect(game.crib_score).to eq(0)
+      expect(game.player1_peg).to eq(1 + 28)
+      expect(game.player2_peg).to eq(3)
+    end
+
+    it "leaves both pegs unchanged when the round is a tie" do
+      # Same board with 4♠ at row 3, col 1: columns still 30, rows now 6
+      # (row 3 gains A-4-J and A-4-K fifteens). Player2's crib 6 7 8 8 + 7 scores 24,
+      # so player2 also totals 30.
+      tied_grid = winning_grid.map(&:dup)
+      tied_grid[3][1] = "4♠"
+      game = score_fixed_board!(grid: tied_grid, crib: %w[6♠ 7♠ 8♥ 8♦],
+                                crib_owner: "player2", player1_peg: 5, player2_peg: 3)
+
+      expect(game.status).to eq("scoring")
+      expect(game.col_scores.compact.sum).to eq(30)
+      expect(game.row_scores.compact.sum + game.crib_score).to eq(30)
+      expect(game.player1_peg).to eq(5)
+      expect(game.player2_peg).to eq(3)
     end
 
     it "sets status to finished when peg reaches 31" do
