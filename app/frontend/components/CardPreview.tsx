@@ -32,6 +32,9 @@ export function CardPreview({ card, deckSize, isMyTurn, onDiscard, canDiscard, i
     }
   }, [isLoading, card]);
 
+  const showDiscard = isMyTurn && canDiscard && !!card;
+  const showWaiting = !isMyTurn;
+
   let cardEl: React.ReactNode;
 
   if (isLoading && !card) {
@@ -63,22 +66,30 @@ export function CardPreview({ card, deckSize, isMyTurn, onDiscard, canDiscard, i
 
       <span className="text-slate-600 text-xs">{deckSize} left</span>
 
-      {isMyTurn && canDiscard && card && (
+      {/* Status slot. The board fills whatever space this panel leaves, so the
+          discard button and the waiting note are always laid out in the same
+          grid cell and only their visibility toggles: the slot is the same size
+          on every turn. The note is also kept out of the panel's width on
+          desktop (it wraps to the width set by the rest of the panel). */}
+      <div data-testid="card-preview-status" className="grid justify-items-start md:justify-items-stretch">
         <button
           onClick={onDiscard}
-          disabled={isLoading}
-          className="rounded bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-xs font-semibold py-1.5 px-2 transition-colors"
+          disabled={isLoading || !showDiscard}
+          aria-hidden={!showDiscard}
+          tabIndex={showDiscard ? undefined : -1}
+          className={`col-start-1 row-start-1 self-start rounded bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-xs font-semibold py-1.5 px-2 transition-colors${showDiscard ? "" : " invisible"}`}
         >
           {isLoading ? "…" : "Discard to crib"}
         </button>
-      )}
 
-      {!isMyTurn && (
-        <span className="text-slate-600 text-xs italic">
+        <span
+          aria-hidden={!showWaiting}
+          className={`col-start-1 row-start-1 md:w-0 md:min-w-full text-slate-600 text-xs italic${showWaiting ? "" : " invisible"}`}
+        >
           Waiting…{" "}
           <span className="text-slate-500 not-italic">(Issue? Try reloading the page)</span>
         </span>
-      )}
+      </div>
     </div>
   );
 }
