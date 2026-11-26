@@ -27,6 +27,12 @@ RSpec.describe Game, type: :model do
     it "returns nil for unknown token" do
       expect(game.player_slot("unknown")).to be_nil
     end
+
+    it "returns nil for a blank token on a game still waiting for player 2" do
+      waiting = create(:game)
+      expect(waiting.player_slot(nil)).to be_nil
+      expect(waiting.player_slot("")).to be_nil
+    end
   end
 
   describe "#deal!" do

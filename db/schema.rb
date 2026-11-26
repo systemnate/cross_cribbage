@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_09_000202) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -40,6 +40,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_09_000202) do
     t.boolean "player1_confirmed_scoring", default: false, null: false
     t.boolean "player2_confirmed_scoring", default: false, null: false
     t.boolean "vs_computer", default: false, null: false
+    t.string "creator_client_key"
+    t.index ["creator_client_key", "status"], name: "index_games_on_creator_client_key_and_status"
     t.index ["player1_token"], name: "index_games_on_player1_token", unique: true
     t.index ["player2_token"], name: "index_games_on_player2_token", unique: true, where: "(player2_token IS NOT NULL)"
     t.index ["status"], name: "index_games_on_status"

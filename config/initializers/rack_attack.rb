@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
+# Throttles are keyed on ClientIp.key_for, which prefers Fly-Client-IP over
+# Rack's spoofable #ip and buckets IPv6 clients by /64 prefix.
+
 # Broad API rate limit
 Rack::Attack.throttle("api/ip", limit: 60, period: 1.minute) do |req|
-  req.ip if req.path.start_with?("/api")
+  ClientIp.key_for(req) if req.path.start_with?("/api")
 end
 
 # Per-IP game creation: 10 per hour.
 Rack::Attack.throttle("game_create/ip", limit: 10, period: 1.hour) do |req|
-  req.ip if req.path == "/api/games" && req.post?
+  ClientIp.key_for(req) if req.path == "/api/games" && req.post?
 end
 
 # Per-cookie game creation: 10 per hour.
