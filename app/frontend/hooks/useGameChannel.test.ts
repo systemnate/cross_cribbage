@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
-import type { GameState, GameChannelMessage } from "../types/game";
+import type { Card, GameState, GameChannelMessage } from "../types/game";
 
 // Mock ActionCable — capture the `received` callback so tests can simulate broadcasts
 type ReceivedFn = (data: GameChannelMessage) => void;
@@ -25,7 +25,7 @@ function makeCard(rank: string, suit: string) {
   return { rank, suit, id: `${rank}${suit}` };
 }
 
-const emptyBoard: (null)[][] = Array.from({ length: 5 }, () => Array(5).fill(null));
+const emptyBoard: (Card | null)[][] = Array.from({ length: 5 }, () => Array(5).fill(null));
 
 function makeGameState(overrides: Partial<GameState> = {}): GameState {
   return {
