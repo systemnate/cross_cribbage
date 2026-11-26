@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { setGameId, clearSession, getGames, addGame, removeGame, StoredGame } from "../lib/storage";
 import { resetConsumer } from "../lib/cable";
 import { CopyLinkButton } from "./CopyLinkButton";
+import turkeyUrl from "../assets/turkey.svg";
 import type { GameState } from "../types/game";
 
 type StoredGameWithStatus = StoredGame & { serverStatus?: GameState["status"] };
@@ -132,6 +133,10 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6 p-6">
+      <div className="flex flex-col items-center gap-2">
+        <img src={turkeyUrl} alt="Turkey" className="w-24 h-auto sm:w-28" />
+        <p className="text-xl font-bold text-orange-400">Happy Thanksgiving!</p>
+      </div>
       <h1 className="text-4xl font-black tracking-wide text-yellow-400">Cross Cribbage</h1>
       <p className="text-slate-400 text-sm">Real-time two-player cribbage on a 5×5 board</p>
 
