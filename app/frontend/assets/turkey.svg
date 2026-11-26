@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" role="img" aria-labelledby="turkey-title">
+  <title id="turkey-title">Turkey</title>
+  <!-- tail feathers -->
+  <g stroke="#0f172a" stroke-width="2">
+    <path d="M100 110 L18 70 A86 86 0 0 1 38 38 Z" fill="#b45309"/>
+    <path d="M100 110 L38 38 A86 86 0 0 1 70 17 Z" fill="#facc15"/>
+    <path d="M100 110 L70 17 A86 86 0 0 1 100 12 Z" fill="#dc2626"/>
+    <path d="M100 110 L100 12 A86 86 0 0 1 130 17 Z" fill="#ea580c"/>
+    <path d="M100 110 L130 17 A86 86 0 0 1 162 38 Z" fill="#facc15"/>
+    <path d="M100 110 L162 38 A86 86 0 0 1 182 70 Z" fill="#b45309"/>
+  </g>
+  <g fill="#0f172a" opacity="0.25">
+    <circle cx="44" cy="62" r="5"/>
+    <circle cx="66" cy="38" r="5"/>
+    <circle cx="100" cy="30" r="5"/>
+    <circle cx="134" cy="38" r="5"/>
+    <circle cx="156" cy="62" r="5"/>
+  </g>
+  <!-- legs -->
+  <g stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M88 150 V168 M88 168 l-8 6 M88 168 l8 6"/>
+    <path d="M112 150 V168 M112 168 l-8 6 M112 168 l8 6"/>
+  </g>
+  <!-- body -->
+  <ellipse cx="100" cy="122" rx="40" ry="34" fill="#78350f" stroke="#0f172a" stroke-width="2"/>
+  <ellipse cx="100" cy="130" rx="24" ry="20" fill="#92400e"/>
+  <!-- head -->
+  <circle cx="100" cy="78" r="22" fill="#92400e" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="92" cy="74" r="4" fill="#f8fafc"/>
+  <circle cx="108" cy="74" r="4" fill="#f8fafc"/>
+  <circle cx="93" cy="75" r="2" fill="#0f172a"/>
+  <circle cx="109" cy="75" r="2" fill="#0f172a"/>
+  <!-- beak and snood -->
+  <path d="M94 82 L106 82 L100 92 Z" fill="#facc15" stroke="#0f172a" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M104 86 C112 90 110 102 104 104 C100 100 100 92 104 86 Z" fill="#dc2626"/>
+</svg>
