@@ -24,6 +24,50 @@ RSpec.describe "Api::Games", type: :request do
       expect(game.status).to eq("active")
       expect(game.player2_token).to be_present
     end
+
+    describe "waiting-game caps" do
+      include ActiveSupport::Testing::TimeHelpers
+
+      let(:client_ip) { "203.0.113.7" }
+
+      it "records the creator's client key on a waiting game" do
+        post "/api/games", headers: { "Fly-Client-IP" => client_ip }
+        expect(response).to have_http_status(:created)
+        expect(Game.find(json["game_id"]).creator_client_key).to eq(client_ip)
+      end
+
+      it "schedules a waiting game for deletion after 10 minutes" do
+        freeze_time do
+          expect { post "/api/games" }
+            .to have_enqueued_job(DestroyGameJob).at(10.minutes.from_now)
+        end
+      end
+
+      it "rejects a human game once the client has too many games waiting" do
+        create_list(:game, Api::GamesController::WAITING_GAMES_PER_CLIENT, creator_client_key: client_ip)
+
+        post "/api/games", headers: { "Fly-Client-IP" => client_ip }
+        expect(response).to have_http_status(:too_many_requests)
+
+        post "/api/games", headers: { "Fly-Client-IP" => "203.0.113.8" }
+        expect(response).to have_http_status(:created)
+      end
+
+      it "returns 503 for a human game once the global waiting cap is reached" do
+        create_list(:game, Api::GamesController::WAITING_GAME_CAP)
+
+        post "/api/games", headers: { "Fly-Client-IP" => client_ip }
+        expect(response).to have_http_status(:service_unavailable)
+      end
+
+      it "does not apply the waiting caps to vs-computer games" do
+        create_list(:game, Api::GamesController::WAITING_GAME_CAP, creator_client_key: client_ip)
+
+        post "/api/games", params: { vs_computer: true }, as: :json, headers: { "Fly-Client-IP" => client_ip }
+        expect(response).to have_http_status(:created)
+        expect(Game.find(json["game_id"]).status).to eq("active")
+      end
+    end
   end
 
   describe "POST /api/games/:id/join" do
@@ -68,6 +112,28 @@ RSpec.describe "Api::Games", type: :request do
     it "returns 401 without a cookie" do
       get "/api/games/#{game.id}"
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    context "when the game is waiting for player 2" do
+      let(:waiting_game) { create(:game) }
+
+      it "returns 401 without a cookie" do
+        get "/api/games/#{waiting_game.id}"
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it "returns 401 with a blank cookie" do
+        cookies[:player_token] = ""
+        get "/api/games/#{waiting_game.id}"
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it "still lets player 1 read the game" do
+        cookies[:player_token] = waiting_game.player1_token
+        get "/api/games/#{waiting_game.id}"
+        expect(response).to have_http_status(:ok)
+        expect(json["my_slot"]).to eq("player1")
+      end
     end
   end
 

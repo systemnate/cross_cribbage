@@ -5,33 +5,38 @@ module Api
   class GamesController < ApiController
     GAME_ACTIONS = %i[show place_card discard_to_crib confirm_round].freeze
     WAITING_GAME_CAP = 50
+    WAITING_GAMES_PER_CLIENT = 5
+    WAITING_GAME_LIFETIME = 10.minutes
 
     before_action :set_game,          only: [:join, :destroy] + GAME_ACTIONS
     before_action :authorize_player!, only: GAME_ACTIONS
 
     # POST /api/games
     def create
-      if Game.where(status: "waiting").count >= WAITING_GAME_CAP
-        return render json: { error: "Server is busy, please try again later." },
-                      status: :service_unavailable
-      end
-
       if @current_token.present? &&
          Game.exists?(player1_token: @current_token, status: "waiting")
         return render json: { error: "You already have a game waiting for a player." },
                       status: :conflict
       end
 
-      token = Game.generate_token
-      game  = Game.create!(player1_token: token)
+      # vs-computer games start active immediately, so the waiting-game caps
+      # below don't apply to them.
+      return create_vs_computer_game if params[:vs_computer]
 
-      if params[:vs_computer]
-        game.update!(player2_token: Game.generate_token, vs_computer: true)
-        game.deal!
-        DestroyGameJob.set(wait: 2.hours).perform_later(game.id)
-      else
-        DestroyGameJob.set(wait: 30.minutes).perform_later(game.id)
+      client_key = ClientIp.key_for(request)
+      if Game.where(status: "waiting", creator_client_key: client_key).count >= WAITING_GAMES_PER_CLIENT
+        return render json: { error: "Too many games waiting for a player. Please try again later." },
+                      status: :too_many_requests
       end
+
+      if Game.where(status: "waiting").count >= WAITING_GAME_CAP
+        return render json: { error: "Server is busy, please try again later." },
+                      status: :service_unavailable
+      end
+
+      token = Game.generate_token
+      game  = Game.create!(player1_token: token, creator_client_key: client_key)
+      DestroyGameJob.set(wait: WAITING_GAME_LIFETIME).perform_later(game.id)
 
       set_player_cookie(token)
       render json: { game_id: game.id }, status: :created
@@ -113,6 +118,16 @@ module Api
 
     private
 
+    def create_vs_computer_game
+      token = Game.generate_token
+      game  = Game.create!(player1_token: token, player2_token: Game.generate_token, vs_computer: true)
+      game.deal!
+      DestroyGameJob.set(wait: 2.hours).perform_later(game.id)
+
+      set_player_cookie(token)
+      render json: { game_id: game.id }, status: :created
+    end
+
     def set_game
       @game = Game.find(params[:id])
     rescue ActiveRecord::RecordNotFound
@@ -120,8 +135,7 @@ module Api
     end
 
     def authorize_player!
-      return if @game.player1_token == @current_token ||
-                @game.player2_token == @current_token
+      return if @current_token.present? && current_slot
 
       render_error("Unauthorized", status: :unauthorized)
     end

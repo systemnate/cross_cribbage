@@ -50,7 +50,7 @@ npm test                             # frontend specs (Vitest, *.test.ts[x])
 **Background jobs:**
 - `ComputerMoveJob` / `ComputerConfirmJob` — AI moves, enqueued from `Game#maybe_enqueue_computer_jobs!` after any state change. `ComputerMoveJob` runs immediately; `ComputerConfirmJob` is delayed 1 second so the human's HTTP response reaches the client before the scoring broadcast fires
 - `AdvanceRoundJob` — auto-advances round 10 seconds after scoring phase (human vs human only)
-- `DestroyGameJob` — destroys game 2 hours after creation
+- `DestroyGameJob` — destroys a game after a fixed lifetime (vs-computer: 2 hours; waiting human games: `WAITING_GAME_LIFETIME` in `games_controller.rb`)
 
 ### Frontend (`app/frontend/`)
 

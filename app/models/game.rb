@@ -15,6 +15,7 @@ class Game < ApplicationRecord
 
   # ── Player identity ───────────────────────────────────────────────────
   def player_slot(token)
+    return nil if token.blank?
     return "player1" if player1_token == token
     return "player2" if player2_token == token
     nil
